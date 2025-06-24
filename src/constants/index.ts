@@ -1,3 +1,4 @@
+// version 1.0.0
 // Application configuration constants
 export const APP_CONFIG = {
   name: 'Prompt Stash',
