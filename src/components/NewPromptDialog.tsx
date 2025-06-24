@@ -31,7 +31,7 @@ export function NewPromptDialog({ isOpen, onClose, onSave }: NewPromptDialogProp
 
     onSave(formData);
     
-    // 重置表单
+    // Reset form
     setFormData({
       title: '',
       content: '',
@@ -52,14 +52,14 @@ export function NewPromptDialog({ isOpen, onClose, onSave }: NewPromptDialogProp
 
   const handleGenerateWithAI = async () => {
     setIsGenerating(true);
-    // 这里可以集成AI生成功能
-    // 暂时使用模拟数据
+    // Here you can integrate AI generation functionality
+    // Using mock data for now
     setTimeout(() => {
       setFormData(prev => ({
         ...prev,
-        title: '智能助手',
-        content: '请告诉我您需要什么帮助？我会尽我所能为您提供支持。\n\n我可以帮助您：\n\n1. 分析问题和需求\n2. 提供专业建议和解决方案\n3. 协助完成相关任务',
-        tags: ['AI助手', '通用'],
+        title: 'Smart Assistant',
+        content: 'How can I help you today? I will do my best to provide support.\n\nI can help you with:\n\n1. Analyzing problems and requirements\n2. Providing professional advice and solutions\n3. Assisting with task completion',
+        tags: ['AI Assistant', 'General'],
       }));
       setIsGenerating(false);
     }, 1500);
@@ -70,7 +70,7 @@ export function NewPromptDialog({ isOpen, onClose, onSave }: NewPromptDialogProp
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-background border border-border rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        {/* 标题栏 */}
+        {/* Title bar */}
         <div className="flex items-center justify-between p-6 border-b border-border">
           <h2 className="text-xl font-semibold">Add new prompt to your stash</h2>
           <button
@@ -96,7 +96,7 @@ export function NewPromptDialog({ isOpen, onClose, onSave }: NewPromptDialogProp
               className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-md hover:bg-foreground/90 transition-colors disabled:opacity-50"
             >
               <Sparkles className="w-4 h-4" />
-              {isGenerating ? '生成中...' : 'Generate with AI'}
+              {isGenerating ? 'Generating...' : 'Generate with AI'}
             </button>
           </div>
 
@@ -118,12 +118,12 @@ export function NewPromptDialog({ isOpen, onClose, onSave }: NewPromptDialogProp
 
           {/* Prompt */}
           <div>
-            <label className="block text-sm font-medium mb-2">提示语内容</label>
+            <label className="block text-sm font-medium mb-2">Prompt Content</label>
             <p className="text-sm text-muted-foreground mb-2">
-              主要的提示语模板内容
+              The main prompt template content
             </p>
             <textarea
-              placeholder="输入您的提示语模板"
+              placeholder="Enter your prompt template"
               value={formData.content}
               onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
               className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none"
@@ -136,13 +136,13 @@ export function NewPromptDialog({ isOpen, onClose, onSave }: NewPromptDialogProp
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium mb-2">标签</label>
+            <label className="block text-sm font-medium mb-2">Tags</label>
             <p className="text-sm text-muted-foreground mb-2">
-              输入相关标签，用逗号分隔
+              Enter relevant tags, separated by commas
             </p>
             <input
               type="text"
-              placeholder="输入标签，用逗号分隔"
+              placeholder="Enter tags separated by commas"
               value={tagInput}
               onChange={(e) => handleTagsChange(e.target.value)}
               className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
@@ -158,7 +158,7 @@ export function NewPromptDialog({ isOpen, onClose, onSave }: NewPromptDialogProp
             )}
           </div>
 
-          {/* 提交按钮 */}
+          {/* Submit button */}
           <button
             type="submit"
             className="w-full py-3 bg-foreground text-background rounded-md hover:bg-foreground/90 transition-colors font-medium"

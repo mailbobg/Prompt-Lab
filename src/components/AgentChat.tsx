@@ -13,23 +13,23 @@ export function AgentChat() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 模拟初始聊天数据
+  // Mock initial chat data
   useEffect(() => {
     const mockChats: Chat[] = [
       {
         id: '1',
-        title: '代码优化讨论',
+        title: 'Code Optimization Discussion',
         messages: [
           {
             id: '1',
             role: 'user',
-            content: '帮我优化这段Python代码',
+            content: 'Help me optimize this Python code',
             timestamp: new Date().toISOString(),
           },
           {
             id: '2',
             role: 'assistant',
-            content: '我很乐意帮你优化Python代码。请分享你的代码，我会分析并提供改进建议。',
+            content: 'I\'d be happy to help you optimize your Python code. Please share your code, and I\'ll analyze it and provide improvement suggestions.',
             timestamp: new Date().toISOString(),
           },
         ],
@@ -42,7 +42,7 @@ export function AgentChat() {
     setActiveChat(mockChats[0]);
   }, []);
 
-  // 自动滚动到底部
+  // Auto scroll to bottom
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -54,7 +54,7 @@ export function AgentChat() {
   const createNewChat = () => {
     const newChat: Chat = {
       id: generateId(),
-      title: `新聊天 ${chats.length + 1}`,
+      title: `New Chat ${chats.length + 1}`,
       messages: [],
       isActive: true,
       createdAt: new Date().toISOString(),
@@ -83,7 +83,7 @@ export function AgentChat() {
       timestamp: new Date().toISOString(),
     };
 
-    // 添加用户消息
+    // Add user message
     const updatedChat = {
       ...activeChat,
       messages: [...activeChat.messages, userMessage],
@@ -95,12 +95,12 @@ export function AgentChat() {
     setMessageInput('');
     setIsLoading(true);
 
-    // 模拟AI回复
+    // Mock AI response
     setTimeout(() => {
       const assistantMessage: Message = {
         id: generateId(),
         role: 'assistant',
-        content: '这是一个模拟的AI回复。在实际应用中，这里会调用真实的AI API来生成回应。',
+        content: 'This is a mock AI response. In a real application, this would call an actual AI API to generate responses.',
         timestamp: new Date().toISOString(),
       };
 
@@ -125,7 +125,7 @@ export function AgentChat() {
 
   return (
     <div className="h-full flex">
-      {/* 聊天列表 */}
+      {/* Chat list */}
       <div className="w-1/3 border-r border-border flex flex-col">
         <div className="p-4 border-b border-border">
           <div className="flex items-center justify-between mb-4">
@@ -150,7 +150,7 @@ export function AgentChat() {
         <div className="flex-1 overflow-y-auto p-4">
           {chats.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
-              暂无聊天记录
+              No chat history
             </div>
           ) : (
             <div className="space-y-2">
@@ -169,7 +169,7 @@ export function AgentChat() {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium truncate">{chat.title}</h3>
                       <p className="text-sm text-muted-foreground truncate mt-1">
-                        {chat.messages[chat.messages.length - 1]?.content || '新聊天'}
+                        {chat.messages[chat.messages.length - 1]?.content || 'New chat'}
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
                         {formatDate(chat.updatedAt)}
@@ -193,22 +193,22 @@ export function AgentChat() {
         </div>
       </div>
 
-      {/* 聊天界面 */}
+      {/* Chat interface */}
       <div className="flex-1 flex flex-col">
         {activeChat ? (
           <>
-            {/* 聊天头部 */}
+            {/* Chat header */}
             <div className="p-4 border-b border-border flex items-center justify-between">
               <h3 className="font-semibold">{activeChat.title}</h3>
               <button
                 className="p-2 hover:bg-accent rounded-md transition-colors"
-                title="聊天设置"
+                title="Chat settings"
               >
                 <Settings className="w-4 h-4" />
               </button>
             </div>
 
-            {/* 消息列表 */}
+            {/* Message list */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {activeChat.messages.map((message) => (
                 <div
@@ -238,7 +238,7 @@ export function AgentChat() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* 输入区域 */}
+            {/* Input area */}
             <div className="p-4 border-t border-border">
               <div className="flex gap-2">
                 <textarea
@@ -258,13 +258,13 @@ export function AgentChat() {
                 </button>
               </div>
               <div className="text-xs text-muted-foreground mt-2">
-                按 Enter 发送，Shift + Enter 换行
+                Press Enter to send, Shift + Enter for new line
               </div>
             </div>
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            选择或创建一个聊天开始对话
+            Select or create a chat to start conversation
           </div>
         )}
       </div>

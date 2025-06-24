@@ -33,7 +33,7 @@ export function useToast() {
     setToasts([]);
   };
 
-  // 便捷方法
+  // Convenience methods
   const success = (title: string, description?: string, duration?: number) =>
     addToast('success', title, description, duration);
 

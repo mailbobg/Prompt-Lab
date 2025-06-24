@@ -3,20 +3,20 @@ import { twMerge } from 'tailwind-merge';
 import { STORAGE_KEYS } from '@/constants';
 import type { Prompt, Chat, AppSettings } from '@/types';
 
-// CSS类名合并工具
+// CSS class name merge utility
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// 生成唯一ID
+// Generate unique ID
 export function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-// 格式化日期
+// Format date
 export function formatDate(date: string | Date): string {
   const d = new Date(date);
-  return d.toLocaleDateString('zh-CN', {
+  return d.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -25,7 +25,7 @@ export function formatDate(date: string | Date): string {
   });
 }
 
-// 本地存储工具
+// Local storage utility
 export const storage = {
   get: <T>(key: string, defaultValue: T): T => {
     if (typeof window === 'undefined') return defaultValue;
@@ -52,7 +52,7 @@ export const storage = {
   },
 };
 
-// 提示语相关工具
+// Prompt related utilities
 export const promptUtils = {
   search: (prompts: Prompt[], query: string): Prompt[] => {
     if (!query.trim()) return prompts;
@@ -88,7 +88,7 @@ export const promptUtils = {
   },
 };
 
-// 文件导入导出工具
+// File import/export utilities
 export const fileUtils = {
   downloadJson: (data: any, filename: string): void => {
     const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -132,7 +132,7 @@ export const fileUtils = {
   },
 };
 
-// 剪贴板工具
+// Clipboard utilities
 export const clipboardUtils = {
   copy: async (text: string): Promise<boolean> => {
     try {
@@ -152,7 +152,7 @@ export const clipboardUtils = {
   },
 };
 
-// 防抖函数
+// Debounce function
 export function debounce<T extends (...args: any[]) => void>(
   func: T,
   delay: number

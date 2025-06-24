@@ -21,30 +21,30 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-2">
-        {/* 导入导出 */}
+        {/* Import/Export */}
         <button
           className="p-2 hover:bg-accent rounded-md transition-colors"
-          title="导入数据"
+          title="Import data"
         >
           <Upload className="w-4 h-4" />
         </button>
         
         <button
           className="p-2 hover:bg-accent rounded-md transition-colors"
-          title="导出数据"
+          title="Export data"
         >
           <Download className="w-4 h-4" />
         </button>
 
-        {/* 设置 */}
+        {/* Settings */}
         <button
           className="p-2 hover:bg-accent rounded-md transition-colors"
-          title="设置"
+          title="Settings"
         >
           <Settings className="w-4 h-4" />
         </button>
 
-        {/* 主题切换 */}
+        {/* Theme toggle */}
         <button
           onClick={toggleTheme}
           className="p-2 hover:bg-accent rounded-md transition-colors"

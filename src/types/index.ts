@@ -1,11 +1,11 @@
-// 基础类型
+// Basic types
 export interface BaseEntity {
   id: string;
   createdAt: string;
   updatedAt: string;
 }
 
-// 提示语类型
+// Prompt types
 export interface Prompt extends BaseEntity {
   title: string;
   content: string;
@@ -14,10 +14,10 @@ export interface Prompt extends BaseEntity {
   isFavorite: boolean;
   isArchived: boolean;
   usage: number;
-  rating: number; // 1-5星评级
+  rating: number; // 1-5 star rating
 }
 
-// 聊天相关类型
+// Chat related types
 export interface Chat extends BaseEntity {
   title: string;
   messages: Message[];
@@ -32,7 +32,7 @@ export interface Message {
   timestamp: string;
 }
 
-// 代理设置
+// Agent settings
 export interface AgentSettings {
   enableActions: boolean;
   tools: string[];
@@ -40,7 +40,7 @@ export interface AgentSettings {
   maxTokens: number;
 }
 
-// 应用设置
+// Application settings
 export interface AppSettings {
   theme: 'light' | 'dark';
   language: string;
@@ -48,7 +48,7 @@ export interface AppSettings {
   agentSettings: AgentSettings;
 }
 
-// 过滤器类型
+// Filter types
 export interface FilterOptions {
   category?: string;
   tags?: string[];
@@ -57,13 +57,13 @@ export interface FilterOptions {
   searchQuery?: string;
 }
 
-// 组件Props类型
+// Component Props types
 export interface BaseComponentProps {
   className?: string;
   children?: React.ReactNode;
 }
 
-// 表单相关类型
+// Form related types
 export interface PromptFormData {
   title: string;
   content: string;
@@ -76,7 +76,7 @@ export interface ChatFormData {
   promptId?: string;
 }
 
-// 导入导出类型
+// Import/export types
 export interface ExportData {
   prompts: Prompt[];
   chats: Chat[];

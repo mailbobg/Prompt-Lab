@@ -36,7 +36,7 @@ export function Sidebar({ activeTab, onTabChange, onNewPrompt }: SidebarProps) {
 
   return (
     <div className="sidebar">
-      {/* 标题和标签切换 */}
+      {/* Tab switcher */}
       <div className="p-4 border-b border-border">
         <div className="flex space-x-1 p-1 bg-muted rounded-lg">
           <button
@@ -64,7 +64,7 @@ export function Sidebar({ activeTab, onTabChange, onNewPrompt }: SidebarProps) {
         </div>
       </div>
 
-      {/* 新建按钮 */}
+      {/* New button */}
       <div className="p-4 border-b border-border flex justify-center">
         <button 
           onClick={() => setShowNewPromptDialog(true)}
@@ -74,7 +74,7 @@ export function Sidebar({ activeTab, onTabChange, onNewPrompt }: SidebarProps) {
         </button>
       </div>
 
-      {/* 搜索 */}
+      {/* Search */}
       <div className="p-4 border-b border-border">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -88,7 +88,7 @@ export function Sidebar({ activeTab, onTabChange, onNewPrompt }: SidebarProps) {
         </div>
       </div>
 
-      {/* 过滤器 */}
+      {/* Filters */}
       {activeTab === 'prompts' && (
         <div className="flex-1 overflow-y-auto">
           <div className="p-4">
@@ -102,9 +102,9 @@ export function Sidebar({ activeTab, onTabChange, onNewPrompt }: SidebarProps) {
 
             {showFilters && (
               <div className="space-y-4">
-                {/* 分类过滤 */}
+                {/* Category filter */}
                 <div>
-                  <h4 className="text-sm font-medium mb-2">分类</h4>
+                  <h4 className="text-sm font-medium mb-2">Category</h4>
                   <div className="space-y-1">
                     <button
                       onClick={() => setSelectedCategory('all')}
@@ -134,7 +134,7 @@ export function Sidebar({ activeTab, onTabChange, onNewPrompt }: SidebarProps) {
                   </div>
                 </div>
 
-                {/* 标签过滤 */}
+                {/* Tag filter */}
                 <div>
                   <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
                     <Hash className="w-4 h-4" />
@@ -163,7 +163,7 @@ export function Sidebar({ activeTab, onTabChange, onNewPrompt }: SidebarProps) {
         </div>
       )}
 
-      {/* Agent工具 */}
+      {/* Agent tools */}
       {activeTab === 'agents' && (
         <div className="flex-1 overflow-y-auto">
           <div className="p-4 space-y-4">
@@ -175,19 +175,19 @@ export function Sidebar({ activeTab, onTabChange, onNewPrompt }: SidebarProps) {
             </div>
             
             <div>
-              <h4 className="text-sm font-medium mb-2">工具选择</h4>
+              <h4 className="text-sm font-medium mb-2">Tool Selection</h4>
               <div className="space-y-2 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <input type="checkbox" id="search" defaultChecked />
-                  <label htmlFor="search">搜索</label>
+                  <label htmlFor="search">Search</label>
                 </div>
                 <div className="flex items-center gap-2">
                   <input type="checkbox" id="generate" defaultChecked />
-                  <label htmlFor="generate">生成</label>
+                  <label htmlFor="generate">Generate</label>
                 </div>
                 <div className="flex items-center gap-2">
                   <input type="checkbox" id="analyze" defaultChecked />
-                  <label htmlFor="analyze">分析</label>
+                  <label htmlFor="analyze">Analyze</label>
                 </div>
               </div>
             </div>
@@ -195,7 +195,7 @@ export function Sidebar({ activeTab, onTabChange, onNewPrompt }: SidebarProps) {
         </div>
       )}
 
-      {/* 新建提示词弹窗 */}
+      {/* New prompt dialog */}
       <NewPromptDialog
         isOpen={showNewPromptDialog}
         onClose={() => setShowNewPromptDialog(false)}

@@ -20,18 +20,18 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
 
   const { success, error } = useToast();
 
-  // 从本地存储加载数据
+  // Load data from local storage
   useEffect(() => {
     const storedPrompts = storage.get<Prompt[]>(STORAGE_KEYS.prompts, []);
     
-    // 如果没有存储的数据，使用默认示例数据
+    // If no stored data exists, use default sample data
     if (storedPrompts.length === 0) {
       const defaultPrompts: Prompt[] = [
         {
           id: generateId(),
-          title: '代码优化提示',
-          content: '请帮我优化以下代码，使其更加高效和可读：\n\n[在这里粘贴代码]',
-          tags: ['编程', '优化'],
+          title: 'Code Optimization Prompt',
+          content: 'Please help me optimize the following code to make it more efficient and readable:\n\n[Paste your code here]',
+          tags: ['Programming', 'Optimization'],
           category: 'coding',
           isFavorite: true,
           isArchived: false,
@@ -42,9 +42,9 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
         },
         {
           id: generateId(),
-          title: '文章总结',
-          content: '请为以下文章写一个简洁的总结，包含主要观点和结论：\n\n[在这里粘贴文章内容]',
-          tags: ['总结', '写作'],
+          title: 'Article Summary',
+          content: 'Please write a concise summary of the following article, including main points and conclusions:\n\n[Paste article content here]',
+          tags: ['Summary', 'Writing'],
           category: 'writing',
           isFavorite: false,
           isArchived: false,
@@ -61,7 +61,7 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
     }
   }, []);
 
-  // 保存到本地存储
+  // Save to local storage
   const savePrompts = (newPrompts: Prompt[]) => {
     setPrompts(newPrompts);
     storage.set(STORAGE_KEYS.prompts, newPrompts);
@@ -94,7 +94,7 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
     savePrompts(newPrompts);
     setSelectedPrompt(updatedPrompt);
     setIsEditing(false);
-    success('保存成功', '提示语已更新');
+    success('Saved successfully', 'Prompt has been updated');
   };
 
   const handleCancel = () => {
@@ -112,7 +112,7 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
       setIsEditing(false);
     }
     
-    success('删除成功', '提示语已删除');
+    success('Deleted successfully', 'Prompt has been deleted');
   };
 
   const toggleFavorite = (id: string) => {
@@ -140,9 +140,9 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
   const copyPrompt = async (content: string) => {
     try {
       await navigator.clipboard.writeText(content);
-      success('复制成功', '提示语内容已复制到剪贴板');
+      success('Copied successfully', 'Prompt content has been copied to clipboard');
     } catch (err) {
-      error('复制失败', '无法访问剪贴板');
+      error('Copy failed', 'Unable to access clipboard');
     }
   };
 
@@ -171,7 +171,7 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
     const newPrompts = [...prompts, newPrompt];
     savePrompts(newPrompts);
     setSelectedPrompt(newPrompt);
-    success('创建成功', '新提示语已添加');
+    success('Created successfully', 'New prompt has been added');
   };
 
   useImperativeHandle(ref, () => ({
@@ -180,7 +180,7 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
 
   return (
     <div className="h-full flex">
-      {/* 提示语列表 */}
+      {/* Prompt list */}
       <div className="w-1/3 border-r border-border overflow-y-auto">
         <div className="p-4">
           <h2 className="text-lg font-semibold mb-4">{UI_TEXT.prompts.title}</h2>
@@ -234,7 +234,7 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
                   </div>
                   
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>使用 {prompt.usage} 次</span>
+                    <span>Used {prompt.usage} times</span>
                     <span>{formatDate(prompt.updatedAt)}</span>
                   </div>
                 </div>
@@ -244,11 +244,11 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
         </div>
       </div>
 
-      {/* 提示语详情/编辑 */}
+      {/* Prompt details/edit */}
       <div className="flex-1 flex flex-col">
         {selectedPrompt ? (
           <>
-            {/* 操作栏 */}
+            {/* Action bar */}
             <div className="p-4 border-b border-border flex items-center justify-between">
               <h3 className="font-semibold">{selectedPrompt.title}</h3>
               <div className="flex items-center gap-2">
@@ -258,7 +258,7 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
                     incrementUsage(selectedPrompt.id);
                   }}
                   className="p-2 hover:bg-accent rounded-md transition-colors"
-                  title="复制并记录使用"
+                  title="Copy and record usage"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
@@ -286,7 +286,7 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
               </div>
             </div>
 
-            {/* 内容区域 */}
+            {/* Content area */}
             <div className="flex-1 p-4 overflow-y-auto flex flex-col">
               {isEditing ? (
                 <div className="h-full flex flex-col space-y-4">
@@ -319,7 +319,7 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
                     </label>
                     <input
                       type="text"
-                      placeholder="输入标签，用逗号分隔"
+                      placeholder="Enter tags separated by commas"
                       value={editForm.tags.join(', ')}
                       onChange={(e) => {
                         const tags = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
@@ -381,19 +381,19 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
                   
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-muted-foreground">分类：</span>
+                      <span className="text-muted-foreground">Category:</span>
                       <span>{selectedPrompt.category}</span>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">使用次数：</span>
+                      <span className="text-muted-foreground">Usage count:</span>
                       <span>{selectedPrompt.usage}</span>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">创建时间：</span>
+                      <span className="text-muted-foreground">Created:</span>
                       <span>{formatDate(selectedPrompt.createdAt)}</span>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">更新时间：</span>
+                      <span className="text-muted-foreground">Updated:</span>
                       <span>{formatDate(selectedPrompt.updatedAt)}</span>
                     </div>
                   </div>
@@ -403,7 +403,7 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            选择一个提示语来查看详情
+            Select a prompt to view details
           </div>
         )}
       </div>

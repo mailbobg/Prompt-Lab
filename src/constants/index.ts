@@ -1,67 +1,67 @@
-// 应用常量配置
+// Application configuration constants
 export const APP_CONFIG = {
   name: 'Prompt Stash',
-  description: '本地优先的提示语存储和管理工具',
+  description: 'Local-first prompt storage and management tool',
   version: '1.0.0',
 } as const;
 
-// UI 文本常量
+// UI text constants
 export const UI_TEXT = {
-  // 导航
+  // Navigation
   nav: {
-    newPrompt: '新建提示语',
-    toggleTheme: '切换主题',
-    prompts: '提示语',
-    agents: '代理',
+    newPrompt: 'New Prompt',
+    toggleTheme: 'Toggle Theme',
+    prompts: 'Prompts',
+    agents: 'Agents',
   },
-  // 提示语管理
+  // Prompt management
   prompts: {
-    title: '提示语',
-    edit: '编辑',
-    test: '测试',
-    delete: '删除',
-    save: '保存',
-    cancel: '取消',
-    newPrompt: '新建提示语',
-    searchPlaceholder: '搜索提示语...',
-    noPrompts: '暂无提示语',
-    promptTitle: '提示语标题',
-    promptContent: '提示语内容',
-    tags: '标签',
+    title: 'Prompts',
+    edit: 'Edit',
+    test: 'Test',
+    delete: 'Delete',
+    save: 'Save',
+    cancel: 'Cancel',
+    newPrompt: 'New Prompt',
+    searchPlaceholder: 'Search prompts...',
+    noPrompts: 'No prompts yet',
+    promptTitle: 'Prompt Title',
+    promptContent: 'Prompt Content',
+    tags: 'Tags',
   },
-  // 代理功能
+  // Agent functionality
   agents: {
     title: 'Prompt Agent',
-    enableActions: '启用 AI Actions',
-    newChat: '新建聊天',
-    deleteChat: '删除聊天',
-    sendMessage: '发送消息',
-    messagePlaceholder: '输入消息...',
-    filters: '过滤器',
+    enableActions: 'Enable AI Actions',
+    newChat: 'New Chat',
+    deleteChat: 'Delete Chat',
+    sendMessage: 'Send Message',
+    messagePlaceholder: 'Type a message...',
+    filters: 'Filters',
   },
-  // 通用
+  // Common
   common: {
-    loading: '加载中...',
-    error: '出错了',
-    success: '成功',
-    confirm: '确认',
-    cancel: '取消',
-    save: '保存',
-    delete: '删除',
-    edit: '编辑',
-    close: '关闭',
-    search: '搜索',
-    all: '全部',
+    loading: 'Loading...',
+    error: 'Error',
+    success: 'Success',
+    confirm: 'Confirm',
+    cancel: 'Cancel',
+    save: 'Save',
+    delete: 'Delete',
+    edit: 'Edit',
+    close: 'Close',
+    search: 'Search',
+    all: 'All',
   },
 } as const;
 
-// 主题配置
+// Theme configuration
 export const THEME = {
   light: 'light',
   dark: 'dark',
 } as const;
 
-// 本地存储键名
+// Local storage keys
 export const STORAGE_KEYS = {
   prompts: 'prompt-stash-prompts',
   chats: 'prompt-stash-chats',
@@ -69,7 +69,7 @@ export const STORAGE_KEYS = {
   settings: 'prompt-stash-settings',
 } as const;
 
-// 提示语分类
+// Prompt categories
 export const PROMPT_CATEGORIES = [
   'coding',
   'writing',
@@ -80,27 +80,27 @@ export const PROMPT_CATEGORIES = [
   'other',
 ] as const;
 
-// 默认标签
+// Default tags
 export const DEFAULT_TAGS = [
   'AI',
-  '编程',
-  '写作',
-  '分析',
-  '创意',
-  '商业',
-  '教育',
-  '翻译',
-  '总结',
-  '生成',
+  'Programming',
+  'Writing',
+  'Analysis',
+  'Creative',
+  'Business',
+  'Education',
+  'Translation',
+  'Summary',
+  'Generation',
 ] as const;
 
-// API配置
+// API configuration
 export const API_CONFIG = {
   timeout: 10000,
   retries: 3,
 } as const;
 
-// 文件配置
+// File configuration
 export const FILE_CONFIG = {
   maxSize: 10 * 1024 * 1024, // 10MB
   allowedTypes: ['text/plain', 'application/json'],
