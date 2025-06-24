@@ -6,6 +6,7 @@ import { UI_TEXT, STORAGE_KEYS } from '@/constants';
 import { Prompt } from '@/types';
 import { cn, formatDate, generateId, storage } from '@/lib/utils';
 import { useToast } from '@/hooks/useToast';
+import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button';
 
 export const PromptManager = forwardRef<any, {}>(function PromptManager(props, ref) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -339,18 +340,16 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
                   </div>
                   
                   <div className="flex gap-3">
-                    <button
+                    <InteractiveHoverButton
                       onClick={handleSave}
-                      className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-                    >
-                      {UI_TEXT.prompts.save}
-                    </button>
-                    <button
+                      text={UI_TEXT.prompts.save}
+                      className="w-auto px-6"
+                    />
+                    <InteractiveHoverButton
                       onClick={handleCancel}
-                      className="px-4 py-2 border border-border rounded-md hover:bg-accent transition-colors"
-                    >
-                      {UI_TEXT.prompts.cancel}
-                    </button>
+                      text={UI_TEXT.prompts.cancel}
+                      className="w-auto px-6 bg-muted border-muted text-muted-foreground hover:bg-muted/80"
+                    />
                   </div>
                 </div>
               ) : (
