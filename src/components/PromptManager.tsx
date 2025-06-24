@@ -8,7 +8,13 @@ import { cn, formatDate, generateId, storage } from '@/lib/utils';
 import { useToast } from '@/hooks/useToast';
 import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button';
 
-export const PromptManager = forwardRef<any, {}>(function PromptManager(props, ref) {
+interface PromptManagerProps {
+  searchQuery?: string;
+  selectedTags?: string[];
+}
+
+export const PromptManager = forwardRef<any, PromptManagerProps>(function PromptManager(props, ref) {
+  const { searchQuery = '', selectedTags = [] } = props;
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -100,7 +106,7 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
 
   const handleCancel = () => {
     setIsEditing(false);
-    setSelectedPrompt(null);
+    // 不要清空 selectedPrompt，保持当前选中的提示符以显示其内容
     setEditForm({ title: '', content: '', tags: [], category: 'other' });
   };
 
@@ -175,6 +181,21 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
     success('Created successfully', 'New prompt has been added');
   };
 
+  // 过滤提示语
+  const filteredPrompts = prompts.filter(prompt => {
+    // 搜索查询过滤
+    const matchesSearch = !searchQuery || 
+      prompt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      prompt.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      prompt.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    // 标签过滤
+    const matchesTags = selectedTags.length === 0 || 
+      selectedTags.some(tag => prompt.tags.includes(tag));
+
+    return matchesSearch && matchesTags;
+  });
+
   useImperativeHandle(ref, () => ({
     addNewPrompt,
   }));
@@ -186,16 +207,23 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
         <div className="p-4">
           <h2 className="text-lg font-semibold mb-4">{UI_TEXT.prompts.title}</h2>
           
-          {prompts.length === 0 ? (
+          {filteredPrompts.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
-              {UI_TEXT.prompts.noPrompts}
+              {prompts.length === 0 ? UI_TEXT.prompts.noPrompts : '未找到匹配的提示语'}
             </div>
           ) : (
             <div className="space-y-3">
-              {prompts.map((prompt) => (
+              {filteredPrompts.map((prompt) => (
                 <div
                   key={prompt.id}
-                  onClick={() => setSelectedPrompt(prompt)}
+                  onClick={() => {
+                    // 如果正在编辑，先退出编辑状态，然后切换选中的提示符
+                    if (isEditing) {
+                      setIsEditing(false);
+                      setEditForm({ title: '', content: '', tags: [], category: 'other' });
+                    }
+                    setSelectedPrompt(prompt);
+                  }}
                   className={cn(
                     'prompt-card',
                     selectedPrompt?.id === prompt.id && 'ring-2 ring-ring'

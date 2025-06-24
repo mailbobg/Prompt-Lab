@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/useToast';
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<'prompts' | 'agents'>('prompts');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { toasts, removeToast } = useToast();
   const promptManagerRef = useRef<any>(null);
 
@@ -25,12 +27,20 @@ export default function HomePage() {
         activeTab={activeTab} 
         onTabChange={setActiveTab} 
         onNewPrompt={handleNewPrompt}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        selectedTags={selectedTags}
+        onTagsChange={setSelectedTags}
       />
       <div className="flex-1 flex flex-col">
         <Header />
         <main className="flex-1 overflow-hidden">
           {activeTab === 'prompts' ? (
-            <PromptManager ref={promptManagerRef} />
+            <PromptManager 
+              ref={promptManagerRef}
+              searchQuery={searchQuery}
+              selectedTags={selectedTags}
+            />
           ) : (
             <AgentChat />
           )}
