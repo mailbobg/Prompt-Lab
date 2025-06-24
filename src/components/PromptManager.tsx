@@ -343,12 +343,12 @@ export const PromptManager = forwardRef<any, {}>(function PromptManager(props, r
                     <InteractiveHoverButton
                       onClick={handleSave}
                       text={UI_TEXT.prompts.save}
-                      className="w-auto px-6"
+                      className="w-56 px-8"
                     />
                     <InteractiveHoverButton
                       onClick={handleCancel}
                       text={UI_TEXT.prompts.cancel}
-                      className="w-auto px-6 bg-muted border-muted text-muted-foreground hover:bg-muted/80"
+                      className="w-56 px-8 bg-muted border-muted text-muted-foreground hover:bg-muted/80"
                     />
                   </div>
                 </div>
