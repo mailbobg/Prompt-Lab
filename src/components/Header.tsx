@@ -1,0 +1,62 @@
+'use client';
+
+import { Moon, Sun, Settings, Download, Upload } from 'lucide-react';
+import { useTheme } from './ThemeProvider';
+import { APP_CONFIG, UI_TEXT } from '@/constants';
+
+export function Header() {
+  const { theme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
+  return (
+    <header className="h-16 border-b border-border bg-card px-6 flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        <h1 className="text-xl font-bold">{APP_CONFIG.name}</h1>
+        <span className="text-sm text-muted-foreground">
+          {APP_CONFIG.description}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-2">
+        {/* 导入导出 */}
+        <button
+          className="p-2 hover:bg-accent rounded-md transition-colors"
+          title="导入数据"
+        >
+          <Upload className="w-4 h-4" />
+        </button>
+        
+        <button
+          className="p-2 hover:bg-accent rounded-md transition-colors"
+          title="导出数据"
+        >
+          <Download className="w-4 h-4" />
+        </button>
+
+        {/* 设置 */}
+        <button
+          className="p-2 hover:bg-accent rounded-md transition-colors"
+          title="设置"
+        >
+          <Settings className="w-4 h-4" />
+        </button>
+
+        {/* 主题切换 */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 hover:bg-accent rounded-md transition-colors"
+          title={UI_TEXT.nav.toggleTheme}
+        >
+          {theme === 'dark' ? (
+            <Sun className="w-4 h-4" />
+          ) : (
+            <Moon className="w-4 h-4" />
+          )}
+        </button>
+      </div>
+    </header>
+  );
+} 
