@@ -1,126 +1,126 @@
 # Prompt Stash
 
-一个本地优先的提示语存储和管理工具，受到 Anthropic Prompt Eval 工具启发。
+A local-first prompt storage and management tool, inspired by Anthropic Prompt Eval tool.
 
-## 功能特性
+## Features
 
-- 🏠 **本地优先**: 所有数据存储在本地，保护隐私
-- 📝 **提示语管理**: 创建、编辑、组织和搜索提示语
-- 🏷️ **标签系统**: 使用标签对提示语进行分类和过滤
-- 🤖 **Agent 对话**: 内置 AI 代理功能，支持多种工具
-- 🌙 **主题切换**: 支持亮色和暗色主题
-- 📱 **响应式设计**: 适配各种屏幕尺寸
-- 🔍 **强大搜索**: 快速搜索和过滤功能
-- 📂 **分类管理**: 按类别组织提示语
-- ⭐ **收藏功能**: 标记常用提示语
-- 📊 **使用统计**: 跟踪提示语使用频率
+- 🏠 **Local-First**: All data stored locally, protecting privacy
+- 📝 **Prompt Management**: Create, edit, organize and search prompts
+- 🏷️ **Tag System**: Categorize and filter prompts using tags
+- 🤖 **Agent Chat**: Built-in AI agent functionality with multiple tools
+- 🌙 **Theme Toggle**: Support for light and dark themes
+- 📱 **Responsive Design**: Adapts to various screen sizes
+- 🔍 **Powerful Search**: Quick search and filtering capabilities
+- 📂 **Category Management**: Organize prompts by categories
+- ⭐ **Favorites**: Mark frequently used prompts
+- 📊 **Usage Statistics**: Track prompt usage frequency
 
-## 技术栈
+## Tech Stack
 
-- **框架**: Next.js 14 (App Router)
-- **语言**: TypeScript
-- **样式**: Tailwind CSS
-- **图标**: Lucide React
-- **存储**: LocalStorage
-- **主题**: 支持系统主题检测
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Storage**: LocalStorage
+- **Theme**: System theme detection support
 
-## 快速开始
+## Quick Start
 
-### 1. 安装依赖
+### 1. Install Dependencies
 
 \`\`\`bash
 npm install
 \`\`\`
 
-### 2. 启动开发服务器
+### 2. Start Development Server
 
 \`\`\`bash
 npm run dev
 \`\`\`
 
-### 3. 打开浏览器
+### 3. Open Browser
 
-访问 [http://localhost:3000](http://localhost:3000) 查看应用。
+Visit [http://localhost:3000](http://localhost:3000) to view the application.
 
-## 项目结构
+## Project Structure
 
 \`\`\`
 src/
 ├── app/                    # Next.js App Router
-│   ├── globals.css        # 全局样式
-│   ├── layout.tsx         # 根布局
-│   └── page.tsx           # 主页面
-├── components/            # React 组件
-│   ├── AgentChat.tsx      # 代理聊天组件
-│   ├── Header.tsx         # 头部导航
-│   ├── PromptManager.tsx  # 提示语管理
-│   ├── Sidebar.tsx        # 侧边栏
-│   └── ThemeProvider.tsx  # 主题提供者
-├── constants/             # 常量配置
-│   └── index.ts          # 应用常量
-├── lib/                   # 工具函数
-│   └── utils.ts          # 通用工具
-└── types/                 # TypeScript 类型
-    └── index.ts          # 类型定义
+│   ├── globals.css        # Global styles
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Main page
+├── components/            # React components
+│   ├── AgentChat.tsx      # Agent chat component
+│   ├── Header.tsx         # Header navigation
+│   ├── PromptManager.tsx  # Prompt management
+│   ├── Sidebar.tsx        # Sidebar
+│   └── ThemeProvider.tsx  # Theme provider
+├── constants/             # Constants configuration
+│   └── index.ts          # Application constants
+├── lib/                   # Utility functions
+│   └── utils.ts          # Common utilities
+└── types/                 # TypeScript types
+    └── index.ts          # Type definitions
 \`\`\`
 
-## 主要功能
+## Main Features
 
-### 提示语管理
+### Prompt Management
 
-- 创建和编辑提示语
-- 添加标签和分类
-- 搜索和过滤功能
-- 收藏和归档
-- 使用统计
+- Create and edit prompts
+- Add tags and categories
+- Search and filter functionality
+- Favorites and archiving
+- Usage statistics
 
-### Agent 对话
+### Agent Chat
 
-- 创建多个聊天会话
-- 启用/禁用 AI Actions
-- 工具选择配置
-- 消息历史记录
+- Create multiple chat sessions
+- Enable/disable AI Actions
+- Tool selection configuration
+- Message history
 
-### 主题系统
+### Theme System
 
-- 自动检测系统主题
-- 手动切换亮色/暗色主题
-- 主题状态持久化
+- Automatic system theme detection
+- Manual light/dark theme toggle
+- Theme state persistence
 
-### 数据管理
+### Data Management
 
-- 本地存储所有数据
-- 支持数据导入导出
-- 自动保存功能
+- Local storage of all data
+- Data import/export support
+- Auto-save functionality
 
-## 开发命令
+## Development Commands
 
 \`\`\`bash
-# 开发模式
+# Development mode
 npm run dev
 
-# 构建生产版本
+# Build production version
 npm run build
 
-# 启动生产服务器
+# Start production server
 npm start
 
-# 代码检查
+# Code linting
 npm run lint
 \`\`\`
 
-## 自定义配置
+## Custom Configuration
 
-所有硬编码的文本和配置都存储在 \`src/constants/index.ts\` 中，便于维护和国际化。
+All hardcoded text and configuration are stored in \`src/constants/index.ts\` for easy maintenance and internationalization.
 
-## 贡献指南
+## Contributing
 
-1. Fork 项目
-2. 创建功能分支
-3. 提交更改
-4. 推送到分支
-5. 创建 Pull Request
+1. Fork the project
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
-## 许可证
+## License
 
 MIT License 

@@ -1,101 +1,101 @@
-# Prompt Stash 部署指南
+# Prompt Stash Deployment Guide
 
-## 项目简介
+## Project Overview
 
-Prompt Stash 是一个本地优先的提示语存储和管理工具，使用 Next.js 14 和 Tailwind CSS 构建。
+Prompt Stash is a local-first prompt storage and management tool built with Next.js 14 and Tailwind CSS.
 
-## 功能特性
+## Features
 
-✅ **提示语管理**
-- 创建、编辑、删除提示语
-- 5星评级系统
-- 标签分类管理
-- 本地存储，数据安全
+✅ **Prompt Management**
+- Create, edit, delete prompts
+- 5-star rating system
+- Tag categorization
+- Local storage for data security
 
-✅ **用户界面**
-- 响应式设计
-- 深色/浅色主题切换
-- 现代化UI组件
-- 自适应布局
+✅ **User Interface**
+- Responsive design
+- Dark/light theme toggle
+- Modern UI components
+- Adaptive layout
 
-✅ **AI集成**
-- 智能提示语生成
-- 代理聊天功能
-- 工具选择配置
+✅ **AI Integration**
+- Smart prompt generation
+- Agent chat functionality
+- Tool selection configuration
 
-## 技术栈
+## Tech Stack
 
-- **前端框架**: Next.js 14
-- **样式**: Tailwind CSS
-- **图标**: Lucide React
-- **状态管理**: React Hooks
-- **存储**: LocalStorage
-- **类型检查**: TypeScript
+- **Frontend Framework**: Next.js 14
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **State Management**: React Hooks
+- **Storage**: LocalStorage
+- **Type Checking**: TypeScript
 
-## 本地开发
+## Local Development
 
 ```bash
-# 安装依赖
+# Install dependencies
 npm install
 
-# 启动开发服务器
+# Start development server
 npm run dev
 
-# 构建生产版本
+# Build production version
 npm run build
 
-# 启动生产服务器
+# Start production server
 npm start
 ```
 
-## 部署到 Vercel
+## Deploy to Vercel
 
-1. 将代码推送到 GitHub
-2. 在 Vercel 中导入项目
-3. 自动部署完成
+1. Push code to GitHub
+2. Import project in Vercel
+3. Automatic deployment complete
 
-## 目录结构
+## Directory Structure
 
 ```
 src/
 ├── app/                 # Next.js App Router
-├── components/          # React 组件
-│   ├── AgentChat.tsx    # AI代理聊天
-│   ├── Header.tsx       # 页面头部
-│   ├── PromptManager.tsx # 提示语管理
-│   ├── Sidebar.tsx      # 侧边栏
+├── components/          # React components
+│   ├── AgentChat.tsx    # AI agent chat
+│   ├── Header.tsx       # Page header
+│   ├── PromptManager.tsx # Prompt management
+│   ├── Sidebar.tsx      # Sidebar
 │   └── ...
-├── constants/           # 常量配置
-├── hooks/              # 自定义Hooks
-├── lib/                # 工具函数
-└── types/              # TypeScript类型
+├── constants/           # Constants configuration
+├── hooks/              # Custom hooks
+├── lib/                # Utility functions
+└── types/              # TypeScript types
 ```
 
-## 使用说明
+## Usage Instructions
 
-### 创建提示语
-1. 点击左侧的 "+" 按钮
-2. 填写标题、内容和标签
-3. 点击 "Create Prompt" 保存
+### Creating Prompts
+1. Click the "+" button on the left
+2. Fill in title, content, and tags
+3. Click "Create Prompt" to save
 
-### 编辑提示语
-1. 点击列表中的提示语
-2. 点击编辑按钮
-3. 修改内容后保存
+### Editing Prompts
+1. Click on a prompt in the list
+2. Click the edit button
+3. Modify content and save
 
-### 星级评分
-- 点击提示语右上角的星星设置评级
-- 支持1-5星评分系统
+### Star Rating
+- Click the stars in the top-right corner to set rating
+- Supports 1-5 star rating system
 
-### AI代理
-- 切换到 "代理" 标签
-- 开始AI对话
-- 配置工具选择
+### AI Agent
+- Switch to "Agents" tab
+- Start AI conversation
+- Configure tool selection
 
-## 贡献指南
+## Contributing
 
-欢迎提交 Issue 和 Pull Request！
+Issues and Pull Requests are welcome!
 
-## 许可证
+## License
 
 MIT License 
