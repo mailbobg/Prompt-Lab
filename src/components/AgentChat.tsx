@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Send, Plus, Trash2, Settings } from 'lucide-react';
+import { Send, Plus, Trash2, Settings, Copy } from 'lucide-react';
 import { UI_TEXT, STORAGE_KEYS } from '@/constants';
 import { Chat, Message } from '@/types';
 import { cn, formatDate, generateId, storage } from '@/lib/utils';
@@ -12,8 +12,23 @@ export function AgentChat() {
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [messageInput, setMessageInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { error } = useToast();
+  const { error, success } = useToast();
+
+  // Copy message content to clipboard
+  const copyMessage = async (messageId: string, content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedMessageId(messageId);
+      // Clear the copied state after 2 seconds
+      setTimeout(() => {
+        setCopiedMessageId(null);
+      }, 2000);
+    } catch (err) {
+      error('复制失败', '无法访问剪贴板');
+    }
+  };
 
   // Call DeepSeek API
   const callDeepSeekAPI = async (messages: Message[]): Promise<string> => {
@@ -277,7 +292,7 @@ export function AgentChat() {
                 <div
                   key={message.id}
                   className={cn(
-                    'chat-message',
+                    'chat-message group relative',
                     message.role === 'user' ? 'user' : 'assistant'
                   )}
                   style={{maxWidth: '100%', wordWrap: 'break-word', overflowWrap: 'anywhere'}}
@@ -285,8 +300,26 @@ export function AgentChat() {
                   <div className="text-sm whitespace-pre-wrap break-words" style={{wordWrap: 'break-word', overflowWrap: 'anywhere'}}>
                     {message.content}
                   </div>
-                  <div className="text-xs opacity-70 mt-2">
-                    {formatDate(message.timestamp)}
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="text-xs opacity-70">
+                      {formatDate(message.timestamp)}
+                    </div>
+                    <button
+                      onClick={() => copyMessage(message.id, message.content)}
+                      className={cn(
+                        "p-1 hover:bg-accent rounded transition-all duration-200",
+                        copiedMessageId === message.id 
+                          ? "opacity-100" 
+                          : "opacity-0 group-hover:opacity-100"
+                      )}
+                      title="复制消息"
+                    >
+                      {copiedMessageId === message.id ? (
+                        <span className="text-xs text-green-600 font-medium">Copied</span>
+                      ) : (
+                        <Copy className="w-3 h-3" />
+                      )}
+                    </button>
                   </div>
                 </div>
               ))}
