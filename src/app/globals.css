@@ -57,11 +57,27 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  .font-apple {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
 }
 
 @layer components {
   .prompt-editor {
     @apply w-full min-h-[200px] p-4 border border-border rounded-md bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring;
+  }
+
+  /* 心跳动画效果 */
+  @keyframes heartbeat {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    50% {
+      transform: scale(1.3);
+      opacity: 1;
+    }
   }
   
   .chat-message {

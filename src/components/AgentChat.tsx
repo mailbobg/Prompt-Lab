@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { Send, Plus, Trash2, Settings, Copy, FileText } from 'lucide-react';
 import { UI_TEXT, STORAGE_KEYS } from '@/constants';
 import { Chat, Message } from '@/types';
@@ -11,7 +11,7 @@ interface AgentChatProps {
   onNewPrompt?: (promptData: any) => void;
 }
 
-export function AgentChat({ onNewPrompt }: AgentChatProps = {}) {
+export const AgentChat = forwardRef<any, AgentChatProps>(function AgentChat({ onNewPrompt } = {}, ref) {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [messageInput, setMessageInput] = useState('');
@@ -19,6 +19,8 @@ export function AgentChat({ onNewPrompt }: AgentChatProps = {}) {
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editingTitle, setEditingTitle] = useState('');
+  const [streamingMessage, setStreamingMessage] = useState<string>('');
+  const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const { error, success } = useToast();
@@ -55,7 +57,7 @@ export function AgentChat({ onNewPrompt }: AgentChatProps = {}) {
   };
 
   // Call DeepSeek API
-  const callDeepSeekAPI = async (messages: Message[]): Promise<string> => {
+  const callDeepSeekAPIStream = async (messages: Message[], onChunk: (chunk: string) => void): Promise<void> => {
     const apiKey = storage.get<string>(STORAGE_KEYS.openAIKey, '');
     
     if (!apiKey) {
@@ -76,7 +78,7 @@ export function AgentChat({ onNewPrompt }: AgentChatProps = {}) {
         })),
         max_tokens: 1000,
         temperature: 0.7,
-        stream: false,
+        stream: true,
       }),
     });
 
@@ -85,16 +87,44 @@ export function AgentChat({ onNewPrompt }: AgentChatProps = {}) {
       throw new Error(errorData.error?.message || `API call failed: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log('DeepSeek API response:', data);
-    
-    // Handle DeepSeek response format
-    const content = data.choices?.[0]?.message?.content || 
-                   data.choices?.[0]?.text || 
-                   'No response from API';
-    
-    console.log('Extracted content:', content);
-    return content;
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+
+    if (!reader) {
+      throw new Error('Failed to get response reader');
+    }
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') {
+              return;
+            }
+
+            try {
+              const parsed = JSON.parse(data);
+              const content = parsed.choices?.[0]?.delta?.content;
+              if (content) {
+                onChunk(content);
+              }
+            } catch (e) {
+              // 忽略解析错误，继续处理下一行
+              console.warn('Failed to parse chunk:', data);
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
   };
 
   // Load chats from localStorage
@@ -130,7 +160,7 @@ export function AgentChat({ onNewPrompt }: AgentChatProps = {}) {
 
   useEffect(() => {
     scrollToBottom();
-  }, [activeChat?.messages]);
+  }, [activeChat?.messages, streamingMessage]);
 
   const createNewChat = () => {
     const newChat: Chat = {
@@ -225,16 +255,26 @@ export function AgentChat({ onNewPrompt }: AgentChatProps = {}) {
     setChats(prev => prev.map(c => c.id === activeChat.id ? updatedChat : c));
     setMessageInput('');
     setIsLoading(true);
+    setIsStreaming(true);
+    setStreamingMessage('');
+
+    // 创建一个临时的助手消息ID
+    const assistantMessageId = generateId();
 
     try {
-      // Call DeepSeek API
-      const aiResponse = await callDeepSeekAPI(updatedChat.messages);
-      console.log('AI Response received:', aiResponse);
+      // Call DeepSeek API with streaming
+      let fullResponse = '';
       
+      await callDeepSeekAPIStream(updatedChat.messages, (chunk: string) => {
+        fullResponse += chunk;
+        setStreamingMessage(fullResponse);
+      });
+
+      // 流式输出完成后，保存完整消息
       const assistantMessage: Message = {
-        id: generateId(),
+        id: assistantMessageId,
         role: 'assistant',
-        content: aiResponse,
+        content: fullResponse,
         timestamp: new Date().toISOString(),
       };
 
@@ -244,13 +284,13 @@ export function AgentChat({ onNewPrompt }: AgentChatProps = {}) {
         updatedAt: new Date().toISOString(),
       };
 
-      console.log('Updating chat with response:', chatWithResponse);
       setActiveChat(chatWithResponse);
       setChats(prev => {
         const updatedChats = prev.map(c => c.id === activeChat.id ? chatWithResponse : c);
         storage.set(STORAGE_KEYS.chats, updatedChats);
         return updatedChats;
       });
+      
     } catch (err) {
       console.error('DeepSeek API error:', err);
       error('API Call Failed', err instanceof Error ? err.message : 'Please check your API key settings');
@@ -264,6 +304,8 @@ export function AgentChat({ onNewPrompt }: AgentChatProps = {}) {
       });
     } finally {
       setIsLoading(false);
+      setIsStreaming(false);
+      setStreamingMessage('');
     }
   };
 
@@ -274,11 +316,18 @@ export function AgentChat({ onNewPrompt }: AgentChatProps = {}) {
     }
   };
 
+  // 暴露给父组件的方法
+  useImperativeHandle(ref, () => ({
+    pasteContent: (content: string) => {
+      setMessageInput(content);
+    }
+  }));
+
   return (
     <div className="h-full flex">
       {/* Chat list */}
       <div className="w-1/3 min-w-0 border-r border-border flex flex-col">
-        <div className="p-4 border-b border-border">
+        <div className="p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">{UI_TEXT.agents.title}</h2>
             <button
@@ -350,7 +399,7 @@ export function AgentChat({ onNewPrompt }: AgentChatProps = {}) {
         {activeChat ? (
           <>
             {/* Chat header */}
-            <div className="p-4 border-b border-border flex items-center justify-between">
+            <div className="p-4 flex items-center justify-between">
               {isEditingTitle ? (
                 <input
                   ref={titleInputRef}
@@ -426,10 +475,41 @@ export function AgentChat({ onNewPrompt }: AgentChatProps = {}) {
                 </div>
               ))}
               
-              {isLoading && (
+              {isStreaming && streamingMessage && (
                 <div className="chat-message assistant">
-                  <div className="text-sm text-muted-foreground">
-                    {UI_TEXT.common.loading}
+                  <div className="text-sm whitespace-pre-wrap break-words" style={{wordWrap: 'break-word', overflowWrap: 'anywhere'}}>
+                    {streamingMessage}
+                    <span className="inline-block w-3 h-3 bg-blue-500 rounded-full ml-1 animate-pulse"></span>
+                  </div>
+                </div>
+              )}
+              
+              {isLoading && !isStreaming && (
+                <div className="chat-message assistant">
+                  <div className="flex items-center justify-start">
+                    <div className="flex space-x-1">
+                      <div 
+                        className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"
+                        style={{
+                          animation: 'heartbeat 1.5s ease-in-out infinite',
+                          animationDelay: '0ms'
+                        }}
+                      ></div>
+                      <div 
+                        className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"
+                        style={{
+                          animation: 'heartbeat 1.5s ease-in-out infinite',
+                          animationDelay: '200ms'
+                        }}
+                      ></div>
+                      <div 
+                        className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"
+                        style={{
+                          animation: 'heartbeat 1.5s ease-in-out infinite',
+                          animationDelay: '400ms'
+                        }}
+                      ></div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -438,14 +518,15 @@ export function AgentChat({ onNewPrompt }: AgentChatProps = {}) {
             </div>
 
             {/* Input area */}
-            <div className="p-4 border-t border-border">
+            <div className="p-4">
               <div className="flex gap-2">
                 <textarea
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder={UI_TEXT.agents.messagePlaceholder}
-                  className="flex-1 min-h-[60px] max-h-32 p-3 border border-border rounded-md bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="flex-1 p-3 border border-border bg-background text-foreground resize-none focus:outline-none focus:ring-1 focus:ring-ring text-sm"
+                  style={{ borderRadius: '18px', minHeight: '66px', maxHeight: '141px' }}
                   disabled={isLoading}
                 />
                 <button
@@ -469,4 +550,4 @@ export function AgentChat({ onNewPrompt }: AgentChatProps = {}) {
       </div>
     </div>
   );
-} 
+});

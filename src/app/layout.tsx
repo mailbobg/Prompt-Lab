@@ -1,10 +1,7 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { APP_CONFIG } from '@/constants';
 import { ThemeProvider } from '@/components/ThemeProvider';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: APP_CONFIG.name,
@@ -18,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className="font-apple">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

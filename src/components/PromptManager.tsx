@@ -15,10 +15,11 @@ interface PromptManagerProps {
     success: (title: string, description?: string, duration?: number) => void;
     error: (title: string, description?: string, duration?: number) => void;
   };
+  onTestPrompt?: (content: string) => void;
 }
 
 export const PromptManager = forwardRef<any, PromptManagerProps>(function PromptManager(props, ref) {
-  const { searchQuery = '', selectedTags = [], onToast } = props;
+  const { searchQuery = '', selectedTags = [], onToast, onTestPrompt } = props;
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -189,6 +190,31 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
     }
   };
 
+  const handleTestPrompt = async (prompt: Prompt) => {
+    // 增加使用次数
+    incrementUsage(prompt.id);
+    
+    // 准备要复制的内容
+    let contentToCopy = prompt.content;
+    if (prompt.sample && prompt.sample.trim()) {
+      contentToCopy = `${prompt.content}\n\n${prompt.sample}`;
+    }
+    
+    // 复制到剪贴板
+    try {
+      await navigator.clipboard.writeText(contentToCopy);
+      success('Copied', '', 1000);
+    } catch (err) {
+      error('Copy failed', 'Unable to access clipboard');
+      return;
+    }
+    
+    // 调用回调函数跳转到agents页面并粘贴内容
+    if (onTestPrompt) {
+      onTestPrompt(contentToCopy);
+    }
+  };
+
   const addNewPrompt = (promptData: any) => {
     const newPrompt: Prompt = {
       ...promptData,
@@ -303,7 +329,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
         {selectedPrompt ? (
           <>
             {/* Action bar */}
-            <div className="p-4 border-b border-border flex items-center justify-between">
+            <div className="p-4 flex items-center justify-between">
               <h3 className="font-semibold">{selectedPrompt.title}</h3>
               <div className="flex items-center gap-2 prompt-actions">
                 <button
@@ -324,7 +350,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => incrementUsage(selectedPrompt.id)}
+                  onClick={() => handleTestPrompt(selectedPrompt)}
                   className="p-2 hover:bg-accent rounded-md transition-colors"
                   title={UI_TEXT.prompts.test}
                 >
@@ -406,7 +432,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                     <InteractiveHoverButton
                       onClick={handleSave}
                       text={UI_TEXT.prompts.save}
-                      className="w-52 px-7"
+                      className="w-52 px-7 bg-muted border-muted text-muted-foreground hover:bg-muted/80"
                     />
                     <InteractiveHoverButton
                       onClick={handleCancel}
