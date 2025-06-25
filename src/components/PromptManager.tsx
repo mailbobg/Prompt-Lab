@@ -11,10 +11,14 @@ import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button
 interface PromptManagerProps {
   searchQuery?: string;
   selectedTags?: string[];
+  onToast?: {
+    success: (title: string, description?: string, duration?: number) => void;
+    error: (title: string, description?: string, duration?: number) => void;
+  };
 }
 
 export const PromptManager = forwardRef<any, PromptManagerProps>(function PromptManager(props, ref) {
-  const { searchQuery = '', selectedTags = [] } = props;
+  const { searchQuery = '', selectedTags = [], onToast } = props;
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -26,7 +30,8 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
     category: 'other',
   });
 
-  const { success, error } = useToast();
+  const localToast = useToast();
+  const { success, error } = onToast || localToast;
 
   // Load data from local storage
   useEffect(() => {
@@ -157,6 +162,22 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
     }
   };
 
+  const copyPromptWithSample = async (prompt: Prompt) => {
+    try {
+      let contentToCopy = prompt.content;
+      
+      // 如果有sample内容，则将其添加到复制内容中
+      if (prompt.sample && prompt.sample.trim()) {
+        contentToCopy = `${prompt.content}\n\n${prompt.sample}`;
+      }
+      
+      await navigator.clipboard.writeText(contentToCopy);
+      success('Copied', '', 1000);
+    } catch (err) {
+      error('Copy failed', 'Unable to access clipboard');
+    }
+  };
+
   const incrementUsage = (id: string) => {
     const newPrompts = prompts.map(p =>
       p.id === id ? { ...p, usage: p.usage + 1, updatedAt: new Date().toISOString() } : p
@@ -207,7 +228,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
   return (
     <div className="h-full flex">
       {/* Prompt list */}
-      <div className="w-1/3 border-r border-border overflow-y-auto">
+      <div className="w-1/3 min-w-[300px] max-w-[400px] prompt-list border-r border-border overflow-y-auto">
         <div className="p-4">
           <h2 className="text-lg font-semibold mb-4">{UI_TEXT.prompts.title}</h2>
           
@@ -278,20 +299,20 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
       </div>
 
       {/* Prompt details/edit */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 min-w-0 flex flex-col">
         {selectedPrompt ? (
           <>
             {/* Action bar */}
             <div className="p-4 border-b border-border flex items-center justify-between">
               <h3 className="font-semibold">{selectedPrompt.title}</h3>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 prompt-actions">
                 <button
                   onClick={() => {
-                    copyPrompt(selectedPrompt.content);
+                    copyPromptWithSample(selectedPrompt);
                     incrementUsage(selectedPrompt.id);
                   }}
                   className="p-2 hover:bg-accent rounded-md transition-colors"
-                  title="Copy and record usage"
+                  title="Copy prompt content and sample"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
@@ -331,7 +352,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                       type="text"
                       value={editForm.title}
                       onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
-                      className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
                   
@@ -368,7 +389,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                         const tags = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
                         setEditForm(prev => ({ ...prev, tags }));
                       }}
-                      className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                     {editForm.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
@@ -381,7 +402,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                     )}
                   </div>
                   
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 prompt-form-buttons">
                     <InteractiveHoverButton
                       onClick={handleSave}
                       text={UI_TEXT.prompts.save}
@@ -400,7 +421,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                     <h4 className="text-sm font-medium text-muted-foreground mb-2">
                       {UI_TEXT.prompts.promptContent}
                     </h4>
-                    <div className="p-4 bg-muted rounded-md">
+                    <div className="p-4">
                       <pre className="whitespace-pre-wrap text-sm">
                         {selectedPrompt.content}
                       </pre>
@@ -412,7 +433,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                       <h4 className="text-sm font-medium text-muted-foreground mb-2">
                         Sample
                       </h4>
-                      <div className="p-4 bg-muted rounded-md">
+                      <div className="p-4">
                         <pre className="whitespace-pre-wrap text-sm">
                           {selectedPrompt.sample}
                         </pre>

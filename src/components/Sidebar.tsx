@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Hash, Archive, X, FileText, MessageSquare } from 'lucide-react';
 import { UI_TEXT, DEFAULT_TAGS, STORAGE_KEYS } from '@/constants';
 import { cn } from '@/lib/utils';
-import { NewPromptDialog } from './NewPromptDialog';
+
 import { SearchBar } from './ui/search-bar';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 import { Prompt } from '@/types';
@@ -32,7 +32,7 @@ export function Sidebar({
   onTagsChange
 }: SidebarProps) {
   const [showFilters, setShowFilters] = useState(false);
-  const [showNewPromptDialog, setShowNewPromptDialog] = useState(false);
+
   const [availableTags, setAvailableTags] = useState<Array<{tag: string, count: number}>>([]);
 
   // 动态获取所有可用标签并按使用频率排序
@@ -80,12 +80,7 @@ export function Sidebar({
     onTagsChange([]);
   };
 
-  const handleNewPrompt = (promptData: any) => {
-    if (onNewPrompt) {
-      onNewPrompt(promptData);
-    }
-    setShowNewPromptDialog(false);
-  };
+
 
   return (
     <div className="sidebar">
@@ -117,7 +112,7 @@ export function Sidebar({
           <InteractiveHoverButton
             text={UI_TEXT.nav.newPrompt}
             className="w-full"
-            onClick={() => setShowNewPromptDialog(true)}
+            onClick={onNewPrompt}
           />
         </div>
       )}
@@ -253,12 +248,7 @@ export function Sidebar({
         </div>
       )}
 
-      {/* New prompt dialog */}
-      <NewPromptDialog
-        isOpen={showNewPromptDialog}
-        onClose={() => setShowNewPromptDialog(false)}
-        onSave={handleNewPrompt}
-      />
+
     </div>
   );
 } 

@@ -1,7 +1,7 @@
 // version 1.0.0
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Sparkles } from 'lucide-react';
 import { UI_TEXT } from '@/constants';
 import { Prompt } from '@/types';
@@ -11,9 +11,10 @@ interface NewPromptDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (prompt: Omit<Prompt, 'id' | 'usage' | 'createdAt' | 'updatedAt' | 'isArchived'>) => void;
+  prefilledData?: any;
 }
 
-export function NewPromptDialog({ isOpen, onClose, onSave }: NewPromptDialogProps) {
+export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewPromptDialogProps) {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -26,6 +27,34 @@ export function NewPromptDialog({ isOpen, onClose, onSave }: NewPromptDialogProp
   
   const [tagInput, setTagInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Use prefilled data when dialog opens
+  useEffect(() => {
+    if (isOpen && prefilledData) {
+      setFormData({
+        title: prefilledData.title || '',
+        content: prefilledData.content || '',
+        sample: prefilledData.sample || '',
+        tags: prefilledData.tags || [],
+        category: prefilledData.category || 'other',
+        isFavorite: prefilledData.isFavorite || false,
+        rating: prefilledData.rating || 0,
+      });
+      setTagInput(prefilledData.tags ? prefilledData.tags.join(', ') : '');
+    } else if (isOpen && !prefilledData) {
+      // Reset form for new prompt
+      setFormData({
+        title: '',
+        content: '',
+        sample: '',
+        tags: [],
+        category: 'other',
+        isFavorite: false,
+        rating: 0,
+      });
+      setTagInput('');
+    }
+  }, [isOpen, prefilledData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
