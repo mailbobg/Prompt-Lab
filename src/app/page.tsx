@@ -9,19 +9,30 @@ import { AgentChat } from '@/components/AgentChat';
 import { ToastContainer } from '@/components/Toast';
 import { useToast } from '@/hooks/useToast';
 import { SettingsDialog } from '@/components/SettingsDialog';
+import { NewPromptDialog } from '@/components/NewPromptDialog';
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<'prompts' | 'agents'>('prompts');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const { toasts, removeToast } = useToast();
+  const [isNewPromptOpen, setIsNewPromptOpen] = useState(false);
+  const [prefilledPromptData, setPrefilledPromptData] = useState<any>(null);
+  const { toasts, removeToast, success, error } = useToast();
   const promptManagerRef = useRef<any>(null);
 
   const handleNewPrompt = (promptData: any) => {
     if (promptManagerRef.current && promptManagerRef.current.addNewPrompt) {
       promptManagerRef.current.addNewPrompt(promptData);
     }
+    setIsNewPromptOpen(false);
+    setPrefilledPromptData(null);
+  };
+
+  const handleNewPromptFromChat = (promptData: any) => {
+    setActiveTab('prompts'); // Switch to prompts tab
+    setPrefilledPromptData(promptData); // Set prefilled data
+    setIsNewPromptOpen(true); // Open dialog
   };
 
   return (
@@ -29,13 +40,13 @@ export default function HomePage() {
       <Sidebar 
         activeTab={activeTab} 
         onTabChange={setActiveTab} 
-        onNewPrompt={handleNewPrompt}
+        onNewPrompt={() => setIsNewPromptOpen(true)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         selectedTags={selectedTags}
         onTagsChange={setSelectedTags}
       />
-              <div className="flex-1 flex flex-col">
+              <div className="flex-1 min-w-0 flex flex-col">
           <Header onSettings={() => setIsSettingsOpen(true)} />
           <main className="flex-1 overflow-hidden">
           {activeTab === 'prompts' ? (
@@ -43,17 +54,27 @@ export default function HomePage() {
               ref={promptManagerRef}
               searchQuery={searchQuery}
               selectedTags={selectedTags}
+              onToast={{ success, error }}
             />
           ) : (
-            <AgentChat />
+            <AgentChat onNewPrompt={handleNewPromptFromChat} />
           )}
         </main>
               </div>
         <ToastContainer toasts={toasts} onClose={removeToast} />
-        <SettingsDialog 
+                <SettingsDialog 
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
         />
+        <NewPromptDialog
+          isOpen={isNewPromptOpen}
+          onClose={() => {
+            setIsNewPromptOpen(false);
+            setPrefilledPromptData(null);
+          }}
+          onSave={handleNewPrompt}
+          prefilledData={prefilledPromptData}
+        />
       </div>
     );
-} 
+  } 

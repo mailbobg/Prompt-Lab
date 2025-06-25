@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
@@ -53,33 +53,15 @@ export function ToastComponent({ toast, onClose }: ToastProps) {
   return (
     <div
       className={cn(
-        'pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg border shadow-lg transition-all duration-300',
+        'pointer-events-auto w-auto overflow-hidden rounded-lg border shadow-lg transition-all duration-300',
         toastStyles[toast.type],
         isVisible
           ? 'translate-x-0 opacity-100'
           : 'translate-x-full opacity-0'
       )}
     >
-      <div className="p-4">
-        <div className="flex items-start">
-          <div className="flex-shrink-0">
-            <Icon className="h-5 w-5" />
-          </div>
-          <div className="ml-3 w-0 flex-1">
-            <p className="text-sm font-medium">{toast.title}</p>
-            {toast.description && (
-              <p className="mt-1 text-sm opacity-90">{toast.description}</p>
-            )}
-          </div>
-          <div className="ml-4 flex flex-shrink-0">
-            <button
-              onClick={() => onClose(toast.id)}
-              className="inline-flex rounded-md p-1.5 hover:bg-black/10 focus:outline-none focus:ring-2 focus:ring-offset-2"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
+      <div className="p-2 flex items-center justify-center">
+        <Icon className="h-5 w-5" />
       </div>
     </div>
   );

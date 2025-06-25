@@ -1,19 +1,58 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Send, Plus, Trash2, Settings } from 'lucide-react';
+import { Send, Plus, Trash2, Settings, Copy, FileText } from 'lucide-react';
 import { UI_TEXT, STORAGE_KEYS } from '@/constants';
 import { Chat, Message } from '@/types';
 import { cn, formatDate, generateId, storage } from '@/lib/utils';
 import { useToast } from '@/hooks/useToast';
 
-export function AgentChat() {
+interface AgentChatProps {
+  onNewPrompt?: (promptData: any) => void;
+}
+
+export function AgentChat({ onNewPrompt }: AgentChatProps = {}) {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [messageInput, setMessageInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editingTitle, setEditingTitle] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { error } = useToast();
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const { error, success } = useToast();
+
+  // Copy message content to clipboard
+  const copyMessage = async (messageId: string, content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedMessageId(messageId);
+      // Clear the copied state after 2 seconds
+      setTimeout(() => {
+        setCopiedMessageId(null);
+      }, 2000);
+    } catch (err) {
+      error('复制失败', '无法访问剪贴板');
+    }
+  };
+
+  // Add message to prompts
+  const addToPrompts = (content: string) => {
+    if (onNewPrompt) {
+      const promptData = {
+        title: content.length > 50 ? content.substring(0, 50) + '...' : content,
+        content: content,
+        sample: '',
+        tags: ['AI Generated'],
+        category: 'other',
+        isFavorite: false,
+        rating: 0,
+      };
+      onNewPrompt(promptData);
+      success('添加成功', '已添加到提示符库');
+    }
+  };
 
   // Call DeepSeek API
   const callDeepSeekAPI = async (messages: Message[]): Promise<string> => {
@@ -115,6 +154,56 @@ export function AgentChat() {
     }
   };
 
+  // Start editing chat title
+  const startEditingTitle = () => {
+    if (activeChat) {
+      setIsEditingTitle(true);
+      setEditingTitle(activeChat.title);
+      // Focus input after state update
+      setTimeout(() => {
+        titleInputRef.current?.focus();
+        titleInputRef.current?.select();
+      }, 0);
+    }
+  };
+
+  // Save edited title
+  const saveTitle = () => {
+    if (!activeChat || !editingTitle.trim()) {
+      setIsEditingTitle(false);
+      return;
+    }
+
+    const updatedChat = {
+      ...activeChat,
+      title: editingTitle.trim(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    setActiveChat(updatedChat);
+    setChats(prev => {
+      const updatedChats = prev.map(c => c.id === activeChat.id ? updatedChat : c);
+      storage.set(STORAGE_KEYS.chats, updatedChats);
+      return updatedChats;
+    });
+    setIsEditingTitle(false);
+  };
+
+  // Cancel editing title
+  const cancelEditingTitle = () => {
+    setIsEditingTitle(false);
+    setEditingTitle('');
+  };
+
+  // Handle title input key press
+  const handleTitleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      saveTitle();
+    } else if (e.key === 'Escape') {
+      cancelEditingTitle();
+    }
+  };
+
   const sendMessage = async () => {
     if (!messageInput.trim() || !activeChat || isLoading) return;
 
@@ -194,10 +283,10 @@ export function AgentChat() {
             <h2 className="text-lg font-semibold">{UI_TEXT.agents.title}</h2>
             <button
               onClick={createNewChat}
-              className="p-2 hover:bg-accent rounded-md transition-colors"
+              className="p-2 hover:bg-accent rounded-md transition-all duration-150 hover:scale-125"
               title={UI_TEXT.agents.newChat}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 transition-transform duration-150" />
             </button>
           </div>
           
@@ -243,10 +332,10 @@ export function AgentChat() {
                         e.stopPropagation();
                         deleteChat(chat.id);
                       }}
-                      className="p-1 hover:bg-destructive/10 hover:text-destructive rounded transition-colors"
+                      className="p-1 hover:bg-destructive/10 hover:text-destructive rounded transition-all duration-150 hover:scale-125"
                       title={UI_TEXT.agents.deleteChat}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4 transition-transform duration-150" />
                     </button>
                   </div>
                 </div>
@@ -262,12 +351,31 @@ export function AgentChat() {
           <>
             {/* Chat header */}
             <div className="p-4 border-b border-border flex items-center justify-between">
-              <h3 className="font-semibold">{activeChat.title}</h3>
+              {isEditingTitle ? (
+                <input
+                  ref={titleInputRef}
+                  type="text"
+                  value={editingTitle}
+                  onChange={(e) => setEditingTitle(e.target.value)}
+                  onKeyDown={handleTitleKeyPress}
+                  onBlur={saveTitle}
+                  className="font-semibold bg-transparent border-none outline-none focus:ring-2 focus:ring-ring rounded px-1 py-0.5 flex-1 mr-2"
+                  maxLength={100}
+                />
+              ) : (
+                <h3 
+                  className="font-semibold cursor-pointer hover:bg-accent rounded px-1 py-0.5 transition-colors flex-1 mr-2"
+                  onDoubleClick={startEditingTitle}
+                  title="双击编辑标题"
+                >
+                  {activeChat.title}
+                </h3>
+              )}
               <button
-                className="p-2 hover:bg-accent rounded-md transition-colors"
+                className="p-2 hover:bg-accent rounded-md transition-all duration-150 hover:scale-125"
                 title="Chat settings"
               >
-                <Settings className="w-4 h-4" />
+                <Settings className="w-4 h-4 transition-transform duration-150" />
               </button>
             </div>
 
@@ -277,7 +385,7 @@ export function AgentChat() {
                 <div
                   key={message.id}
                   className={cn(
-                    'chat-message',
+                    'chat-message group relative',
                     message.role === 'user' ? 'user' : 'assistant'
                   )}
                   style={{maxWidth: '100%', wordWrap: 'break-word', overflowWrap: 'anywhere'}}
@@ -285,8 +393,35 @@ export function AgentChat() {
                   <div className="text-sm whitespace-pre-wrap break-words" style={{wordWrap: 'break-word', overflowWrap: 'anywhere'}}>
                     {message.content}
                   </div>
-                  <div className="text-xs opacity-70 mt-2">
-                    {formatDate(message.timestamp)}
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="text-xs opacity-70">
+                      {formatDate(message.timestamp)}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => addToPrompts(message.content)}
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-accent rounded transition-all duration-150 hover:scale-125"
+                        title="Add to prompts"
+                      >
+                        <FileText className="w-3 h-3 transition-transform duration-150" />
+                      </button>
+                      <button
+                        onClick={() => copyMessage(message.id, message.content)}
+                        className={cn(
+                          "p-1 hover:bg-accent rounded transition-all duration-150 hover:scale-125",
+                          copiedMessageId === message.id 
+                            ? "opacity-100" 
+                            : "opacity-0 group-hover:opacity-100"
+                        )}
+                        title="Copy message"
+                      >
+                        {copiedMessageId === message.id ? (
+                          <span className="text-xs text-green-600 font-medium">Copied</span>
+                        ) : (
+                          <Copy className="w-3 h-3 transition-transform duration-150" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -310,15 +445,15 @@ export function AgentChat() {
                   onChange={(e) => setMessageInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder={UI_TEXT.agents.messagePlaceholder}
-                  className="flex-1 min-h-[60px] max-h-32 p-3 border border-border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="flex-1 min-h-[60px] max-h-32 p-3 border border-border rounded-md bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring"
                   disabled={isLoading}
                 />
                 <button
                   onClick={sendMessage}
                   disabled={!messageInput.trim() || isLoading}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 hover:scale-125"
                 >
-                  <Send className="w-4 h-4" />
+                  <Send className="w-4 h-4 transition-transform duration-150" />
                 </button>
               </div>
               <div className="text-xs text-muted-foreground mt-2">
