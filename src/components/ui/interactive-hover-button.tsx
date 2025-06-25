@@ -1,4 +1,3 @@
-// version 1.0.0
 import React from "react";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";

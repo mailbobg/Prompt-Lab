@@ -1,11 +1,14 @@
-// version 1.0.0
 'use client';
 
 import { Moon, Sun, Settings, Download, Upload } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { APP_CONFIG, UI_TEXT } from '@/constants';
 
-export function Header() {
+interface HeaderProps {
+  onSettings?: () => void;
+}
+
+export function Header({ onSettings }: HeaderProps = {}) {
   const { theme, setTheme } = useTheme();
 
   const toggleTheme = () => {
@@ -39,6 +42,7 @@ export function Header() {
 
         {/* Settings */}
         <button
+          onClick={onSettings}
           className="p-2 hover:bg-accent rounded-md transition-colors"
           title="Settings"
         >

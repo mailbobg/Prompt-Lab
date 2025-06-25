@@ -1,11 +1,11 @@
-// version 1.0.0
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { Send, Plus, Trash2, Settings } from 'lucide-react';
-import { UI_TEXT } from '@/constants';
+import { UI_TEXT, STORAGE_KEYS } from '@/constants';
 import { Chat, Message } from '@/types';
-import { cn, formatDate, generateId } from '@/lib/utils';
+import { cn, formatDate, generateId, storage } from '@/lib/utils';
+import { useToast } from '@/hooks/useToast';
 
 export function AgentChat() {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -13,39 +13,80 @@ export function AgentChat() {
   const [messageInput, setMessageInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { error } = useToast();
 
-  // Mock initial chat data
+  // Call DeepSeek API
+  const callDeepSeekAPI = async (messages: Message[]): Promise<string> => {
+    const apiKey = storage.get<string>(STORAGE_KEYS.openAIKey, '');
+    
+    if (!apiKey) {
+      throw new Error('API key not found. Please set your API key in settings.');
+    }
+
+    const response = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: messages.map(msg => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+        max_tokens: 1000,
+        temperature: 0.7,
+        stream: false,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || `API call failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('DeepSeek API response:', data);
+    
+    // Handle DeepSeek response format
+    const content = data.choices?.[0]?.message?.content || 
+                   data.choices?.[0]?.text || 
+                   'No response from API';
+    
+    console.log('Extracted content:', content);
+    return content;
+  };
+
+  // Load chats from localStorage
   useEffect(() => {
-    const mockChats: Chat[] = [
-      {
-        id: '1',
-        title: 'Code Optimization Discussion',
-        messages: [
-          {
-            id: '1',
-            role: 'user',
-            content: 'Help me optimize this Python code',
-            timestamp: new Date().toISOString(),
-          },
-          {
-            id: '2',
-            role: 'assistant',
-            content: 'I\'d be happy to help you optimize your Python code. Please share your code, and I\'ll analyze it and provide improvement suggestions.',
-            timestamp: new Date().toISOString(),
-          },
-        ],
+    const storedChats = storage.get<Chat[]>(STORAGE_KEYS.chats, []);
+    
+    if (storedChats.length === 0) {
+      // Create initial chat if none exists
+      const initialChat: Chat = {
+        id: generateId(),
+        title: 'New Chat',
+        messages: [],
         isActive: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      },
-    ];
-    setChats(mockChats);
-    setActiveChat(mockChats[0]);
+      };
+      setChats([initialChat]);
+      setActiveChat(initialChat);
+      storage.set(STORAGE_KEYS.chats, [initialChat]);
+    } else {
+      setChats(storedChats);
+      const activeChat = storedChats.find(chat => chat.isActive) || storedChats[0];
+      setActiveChat(activeChat);
+    }
   }, []);
 
   // Auto scroll to bottom
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   useEffect(() => {
@@ -96,12 +137,15 @@ export function AgentChat() {
     setMessageInput('');
     setIsLoading(true);
 
-    // Mock AI response
-    setTimeout(() => {
+    try {
+      // Call DeepSeek API
+      const aiResponse = await callDeepSeekAPI(updatedChat.messages);
+      console.log('AI Response received:', aiResponse);
+      
       const assistantMessage: Message = {
         id: generateId(),
         role: 'assistant',
-        content: 'This is a mock AI response. In a real application, this would call an actual AI API to generate responses.',
+        content: aiResponse,
         timestamp: new Date().toISOString(),
       };
 
@@ -111,10 +155,27 @@ export function AgentChat() {
         updatedAt: new Date().toISOString(),
       };
 
+      console.log('Updating chat with response:', chatWithResponse);
       setActiveChat(chatWithResponse);
-      setChats(prev => prev.map(c => c.id === activeChat.id ? chatWithResponse : c));
+      setChats(prev => {
+        const updatedChats = prev.map(c => c.id === activeChat.id ? chatWithResponse : c);
+        storage.set(STORAGE_KEYS.chats, updatedChats);
+        return updatedChats;
+      });
+    } catch (err) {
+      console.error('DeepSeek API error:', err);
+      error('API Call Failed', err instanceof Error ? err.message : 'Please check your API key settings');
+      
+      // Restore original chat state if API call failed
+      setActiveChat(activeChat);
+      setChats(prev => {
+        const restoredChats = prev.map(c => c.id === activeChat.id ? activeChat : c);
+        storage.set(STORAGE_KEYS.chats, restoredChats);
+        return restoredChats;
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -127,7 +188,7 @@ export function AgentChat() {
   return (
     <div className="h-full flex">
       {/* Chat list */}
-      <div className="w-1/3 border-r border-border flex flex-col">
+      <div className="w-1/3 min-w-0 border-r border-border flex flex-col">
         <div className="p-4 border-b border-border">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">{UI_TEXT.agents.title}</h2>
@@ -167,10 +228,11 @@ export function AgentChat() {
                   )}
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 overflow-hidden">
                       <h3 className="font-medium truncate">{chat.title}</h3>
-                      <p className="text-sm text-muted-foreground truncate mt-1">
-                        {chat.messages[chat.messages.length - 1]?.content || 'New chat'}
+                      <p className="text-sm text-muted-foreground truncate mt-1 break-words">
+                        {chat.messages[chat.messages.length - 1]?.content?.substring(0, 50) + 
+                         (chat.messages[chat.messages.length - 1]?.content?.length > 50 ? '...' : '') || 'New chat'}
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
                         {formatDate(chat.updatedAt)}
@@ -195,7 +257,7 @@ export function AgentChat() {
       </div>
 
       {/* Chat interface */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
         {activeChat ? (
           <>
             {/* Chat header */}
@@ -210,7 +272,7 @@ export function AgentChat() {
             </div>
 
             {/* Message list */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4">
               {activeChat.messages.map((message) => (
                 <div
                   key={message.id}
@@ -218,8 +280,9 @@ export function AgentChat() {
                     'chat-message',
                     message.role === 'user' ? 'user' : 'assistant'
                   )}
+                  style={{maxWidth: '100%', wordWrap: 'break-word', overflowWrap: 'anywhere'}}
                 >
-                  <div className="text-sm whitespace-pre-wrap">
+                  <div className="text-sm whitespace-pre-wrap break-words" style={{wordWrap: 'break-word', overflowWrap: 'anywhere'}}>
                     {message.content}
                   </div>
                   <div className="text-xs opacity-70 mt-2">

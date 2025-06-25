@@ -8,11 +8,13 @@ import { PromptManager } from '@/components/PromptManager';
 import { AgentChat } from '@/components/AgentChat';
 import { ToastContainer } from '@/components/Toast';
 import { useToast } from '@/hooks/useToast';
+import { SettingsDialog } from '@/components/SettingsDialog';
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<'prompts' | 'agents'>('prompts');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { toasts, removeToast } = useToast();
   const promptManagerRef = useRef<any>(null);
 
@@ -33,9 +35,9 @@ export default function HomePage() {
         selectedTags={selectedTags}
         onTagsChange={setSelectedTags}
       />
-      <div className="flex-1 flex flex-col">
-        <Header />
-        <main className="flex-1 overflow-hidden">
+              <div className="flex-1 flex flex-col">
+          <Header onSettings={() => setIsSettingsOpen(true)} />
+          <main className="flex-1 overflow-hidden">
           {activeTab === 'prompts' ? (
             <PromptManager 
               ref={promptManagerRef}
@@ -46,8 +48,12 @@ export default function HomePage() {
             <AgentChat />
           )}
         </main>
+              </div>
+        <ToastContainer toasts={toasts} onClose={removeToast} />
+        <SettingsDialog 
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+        />
       </div>
-      <ToastContainer toasts={toasts} onClose={removeToast} />
-    </div>
-  );
+    );
 } 

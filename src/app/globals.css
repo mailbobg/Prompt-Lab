@@ -66,6 +66,10 @@
   
   .chat-message {
     @apply p-4 mb-4 rounded-lg;
+    max-width: calc(100% - 2rem);
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    box-sizing: border-box;
   }
   
   .chat-message.user {

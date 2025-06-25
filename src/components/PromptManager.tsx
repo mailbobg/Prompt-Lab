@@ -1,4 +1,3 @@
-// version 1.0.0
 'use client';
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';

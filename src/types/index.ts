@@ -1,4 +1,3 @@
-// version 1.0.0
 // Basic types
 export interface BaseEntity {
   id: string;

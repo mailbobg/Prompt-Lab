@@ -1,4 +1,3 @@
-// version 1.0.0
 "use client";
 
 import * as TabsPrimitive from "@radix-ui/react-tabs";

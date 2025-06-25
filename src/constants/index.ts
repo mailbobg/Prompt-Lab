@@ -68,6 +68,7 @@ export const STORAGE_KEYS = {
   chats: 'prompt-stash-chats',
   theme: 'prompt-stash-theme',
   settings: 'prompt-stash-settings',
+  openAIKey: 'prompt-stash-openai-key',
 } as const;
 
 // Prompt categories
