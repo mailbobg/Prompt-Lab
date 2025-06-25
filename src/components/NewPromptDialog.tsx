@@ -17,6 +17,7 @@ export function NewPromptDialog({ isOpen, onClose, onSave }: NewPromptDialogProp
   const [formData, setFormData] = useState({
     title: '',
     content: '',
+    sample: '',
     tags: [] as string[],
     category: 'other',
     isFavorite: false,
@@ -36,6 +37,7 @@ export function NewPromptDialog({ isOpen, onClose, onSave }: NewPromptDialogProp
     setFormData({
       title: '',
       content: '',
+      sample: '',
       tags: [],
       category: 'other',
       isFavorite: false,
@@ -130,6 +132,21 @@ export function NewPromptDialog({ isOpen, onClose, onSave }: NewPromptDialogProp
               className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none text-sm"
               rows={6}
               required
+            />
+          </div>
+
+          {/* Sample */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Sample</label>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-2">
+              示例内容，展示如何使用这个提示词
+            </p>
+            <textarea
+              placeholder="输入示例内容"
+              value={formData.sample}
+              onChange={(e) => setFormData(prev => ({ ...prev, sample: e.target.value }))}
+              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none text-sm"
+              rows={4}
             />
           </div>
 

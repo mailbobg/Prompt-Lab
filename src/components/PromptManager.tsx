@@ -21,6 +21,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
   const [editForm, setEditForm] = useState({
     title: '',
     content: '',
+    sample: '',
     tags: [] as string[],
     category: 'other',
   });
@@ -38,6 +39,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
           id: generateId(),
           title: 'Code Optimization Prompt',
           content: 'Please help me optimize the following code to make it more efficient and readable:\n\n[Paste your code here]',
+          sample: 'function fibonacci(n) {\n  if (n <= 1) return n;\n  return fibonacci(n-1) + fibonacci(n-2);\n}\n\n// 优化后:\nfunction fibonacci(n, memo = {}) {\n  if (n in memo) return memo[n];\n  if (n <= 1) return n;\n  memo[n] = fibonacci(n-1, memo) + fibonacci(n-2, memo);\n  return memo[n];\n}',
           tags: ['Programming', 'Optimization'],
           category: 'coding',
           isFavorite: true,
@@ -51,6 +53,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
           id: generateId(),
           title: 'Article Summary',
           content: 'Please write a concise summary of the following article, including main points and conclusions:\n\n[Paste article content here]',
+          sample: '文章：《人工智能对教育的影响》\n\n摘要：本文探讨了人工智能技术在教育领域的应用和影响。主要观点包括：1. AI可以提供个性化学习体验；2. 智能辅导系统能够实时反馈学习进度；3. 需要关注数据隐私和教育公平问题。结论是AI将革命性地改变教育方式，但需要谨慎推进以确保技术服务于教育目标。',
           tags: ['Summary', 'Writing'],
           category: 'writing',
           isFavorite: false,
@@ -79,6 +82,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
     setEditForm({
       title: prompt.title,
       content: prompt.content,
+      sample: prompt.sample || '',
       tags: prompt.tags,
       category: prompt.category,
     });
@@ -107,7 +111,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
   const handleCancel = () => {
     setIsEditing(false);
     // 不要清空 selectedPrompt，保持当前选中的提示符以显示其内容
-    setEditForm({ title: '', content: '', tags: [], category: 'other' });
+    setEditForm({ title: '', content: '', sample: '', tags: [], category: 'other' });
   };
 
   const handleDelete = (id: string) => {
@@ -220,7 +224,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                     // 如果正在编辑，先退出编辑状态，然后切换选中的提示符
                     if (isEditing) {
                       setIsEditing(false);
-                      setEditForm({ title: '', content: '', tags: [], category: 'other' });
+                      setEditForm({ title: '', content: '', sample: '', tags: [], category: 'other' });
                     }
                     setSelectedPrompt(prompt);
                   }}
@@ -343,6 +347,16 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                   </div>
 
                   <div>
+                    <label className="block text-sm font-medium mb-2">Sample</label>
+                    <textarea
+                      placeholder="输入示例内容"
+                      value={editForm.sample}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, sample: e.target.value }))}
+                      className="w-full p-3 border border-border rounded-md bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring min-h-[100px] text-sm"
+                    />
+                  </div>
+
+                  <div>
                     <label className="block text-sm font-medium mb-2">
                       {UI_TEXT.prompts.tags}
                     </label>
@@ -393,6 +407,19 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                     </div>
                   </div>
                   
+                  {selectedPrompt.sample && (
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                        Sample
+                      </h4>
+                      <div className="p-4 bg-muted rounded-md">
+                        <pre className="whitespace-pre-wrap text-sm">
+                          {selectedPrompt.sample}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+
                   <div>
                     <h4 className="text-sm font-medium text-muted-foreground mb-2">
                       {UI_TEXT.prompts.tags}

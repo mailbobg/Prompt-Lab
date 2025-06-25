@@ -9,6 +9,7 @@ export interface BaseEntity {
 export interface Prompt extends BaseEntity {
   title: string;
   content: string;
+  sample?: string;
   tags: string[];
   category: string;
   isFavorite: boolean;
@@ -67,6 +68,7 @@ export interface BaseComponentProps {
 export interface PromptFormData {
   title: string;
   content: string;
+  sample?: string;
   tags: string[];
   category: string;
 }
