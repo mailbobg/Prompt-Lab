@@ -20,6 +20,7 @@ export default function HomePage() {
   const [prefilledPromptData, setPrefilledPromptData] = useState<any>(null);
   const { toasts, removeToast, success, error } = useToast();
   const promptManagerRef = useRef<any>(null);
+  const agentChatRef = useRef<any>(null);
 
   const handleNewPrompt = (promptData: any) => {
     if (promptManagerRef.current && promptManagerRef.current.addNewPrompt) {
@@ -33,6 +34,16 @@ export default function HomePage() {
     setActiveTab('prompts'); // Switch to prompts tab
     setPrefilledPromptData(promptData); // Set prefilled data
     setIsNewPromptOpen(true); // Open dialog
+  };
+
+  const handleTestPrompt = (content: string) => {
+    setActiveTab('agents'); // Switch to agents tab
+    // 使用setTimeout确保tab切换完成后再粘贴内容
+    setTimeout(() => {
+      if (agentChatRef.current && agentChatRef.current.pasteContent) {
+        agentChatRef.current.pasteContent(content);
+      }
+    }, 100);
   };
 
   return (
@@ -55,9 +66,13 @@ export default function HomePage() {
               searchQuery={searchQuery}
               selectedTags={selectedTags}
               onToast={{ success, error }}
+              onTestPrompt={handleTestPrompt}
             />
           ) : (
-            <AgentChat onNewPrompt={handleNewPromptFromChat} />
+            <AgentChat 
+              ref={agentChatRef}
+              onNewPrompt={handleNewPromptFromChat} 
+            />
           )}
         </main>
               </div>
