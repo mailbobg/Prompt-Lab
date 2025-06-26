@@ -97,10 +97,20 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
     }, 1500);
   };
 
+  // Handle click outside to close dialog
+  const handleBackgroundClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={handleBackgroundClick}
+    >
       <div className="bg-background border border-border rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Title bar */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border">
@@ -167,11 +177,8 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
           {/* Sample */}
           <div>
             <label className="block text-sm font-medium mb-2">Sample</label>
-            <p className="text-xs sm:text-sm text-muted-foreground mb-2">
-              示例内容，展示如何使用这个提示词
-            </p>
             <textarea
-              placeholder="输入示例内容"
+              placeholder="Enter sample usage example"
               value={formData.sample}
               onChange={(e) => setFormData(prev => ({ ...prev, sample: e.target.value }))}
               className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none text-sm"

@@ -35,7 +35,7 @@ export const AgentChat = forwardRef<any, AgentChatProps>(function AgentChat({ on
         setCopiedMessageId(null);
       }, 2000);
     } catch (err) {
-      error('复制失败', '无法访问剪贴板');
+      error('Copy failed', 'Unable to access clipboard');
     }
   };
 
@@ -52,7 +52,7 @@ export const AgentChat = forwardRef<any, AgentChatProps>(function AgentChat({ on
         rating: 0,
       };
       onNewPrompt(promptData);
-      success('添加成功', '已添加到提示符库');
+      success('Added successfully', 'Added to prompt library');
     }
   };
 
@@ -415,7 +415,7 @@ export const AgentChat = forwardRef<any, AgentChatProps>(function AgentChat({ on
                 <h3 
                   className="font-semibold cursor-pointer hover:bg-accent rounded px-1 py-0.5 transition-colors flex-1 mr-2"
                   onDoubleClick={startEditingTitle}
-                  title="双击编辑标题"
+                  title="Double-click to edit title"
                 >
                   {activeChat.title}
                 </h3>

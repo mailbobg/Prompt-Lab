@@ -61,6 +61,8 @@ export const promptUtils = {
       p =>
         p.title.toLowerCase().includes(lowerQuery) ||
         p.content.toLowerCase().includes(lowerQuery) ||
+        (p.sample && p.sample.toLowerCase().includes(lowerQuery)) ||
+        p.category.toLowerCase().includes(lowerQuery) ||
         p.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
     );
   },

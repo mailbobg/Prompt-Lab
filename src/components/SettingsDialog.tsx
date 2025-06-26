@@ -28,12 +28,22 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
     onClose();
   };
 
+  // Handle click outside to close dialog
+  const handleBackgroundClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   if (!isOpen) {
     return null;
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={handleBackgroundClick}
+    >
       <div className="relative w-full max-w-md rounded-xl border border-border bg-background p-6 shadow-lg">
         <button
           onClick={onClose}

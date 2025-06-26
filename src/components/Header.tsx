@@ -63,7 +63,14 @@ export function Header({ onSettings, onDataChange }: HeaderProps = {}) {
     <>
       <header className="h-16 border-b border-border bg-card px-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h1 className="text-sm font-bold">{APP_CONFIG.name}</h1>
+          <div className="flex items-center gap-2">
+            <img 
+              src="/favicon.png" 
+              alt="Prompt Stash Icon" 
+              className="w-6 h-6"
+            />
+            <h1 className="text-sm font-bold">{APP_CONFIG.name}</h1>
+          </div>
           <span className="text-sm text-muted-foreground">
             {APP_CONFIG.description}
           </span>
