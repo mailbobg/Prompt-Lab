@@ -6,21 +6,25 @@ A professional prompt storage and management application designed for AI workflo
 
 Prompt Stash is a comprehensive solution for managing, organizing, and deploying AI prompts with integrated chat functionality. The application prioritizes user privacy through local storage while providing enterprise-grade features for prompt management and AI interaction.
 
+
+## Installation
+Download Mac/win version in the release.
+
 ## Screenshots
 
 ### Prompt Management Interface
 ![Prompt Management](./images/prompt-management.png)
 *Main prompt management interface showcasing prompt library, tagging system, and detailed content preview*
 
-### Selective Export Feature
+### AI Chat Interface
 ![Selective Export](./images/selective-export.png)
 *Selective export functionality supporting prompts, chat history, and application settings export*
 
-### Code Optimization Example
+### download and upload data
 ![Code Optimization](./images/code-optimization.png)
 *Code optimization prompt example with complete prompt content and sample code*
 
-### AI Chat Interface
+### dark mode
 ![AI Chat Interface](./images/ai-chat.png)
 *AI chat interface with multi-session management and real-time conversation capabilities*
 
