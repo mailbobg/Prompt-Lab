@@ -8,8 +8,6 @@ Prompt Stash is a comprehensive solution for managing, organizing, and deploying
 
 ## Screenshots
 
-<!-- Screenshots will be added soon -->
-<!--
 ### Prompt Management Interface
 ![Prompt Management](./images/prompt-management.png)
 *Main prompt management interface showcasing prompt library, tagging system, and detailed content preview*
@@ -25,7 +23,6 @@ Prompt Stash is a comprehensive solution for managing, organizing, and deploying
 ### AI Chat Interface
 ![AI Chat Interface](./images/ai-chat.png)
 *AI chat interface with multi-session management and real-time conversation capabilities*
--->
 
 ## Core Features
 
@@ -298,6 +295,6 @@ This project is licensed under the MIT License. See the LICENSE file for complet
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: 2024  
+**Version**: 1.0.1 
+**Last Updated**: 2025
 **Maintainers**: Development Team 
