@@ -85,7 +85,7 @@ export function Sidebar({
   return (
     <div className="sidebar">
       {/* Tab switcher */}
-      <div className="p-4">
+      <div className="px-4 pb-4 pt-6">
         <Tabs value={activeTab} onValueChange={(value) => onTabChange(value as 'prompts' | 'agents')}>
           <TabsList className="h-auto rounded-none border-b border-border bg-transparent p-0 w-full">
             <TabsTrigger
