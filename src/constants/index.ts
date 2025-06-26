@@ -1,7 +1,7 @@
 // version 1.0.0
 // Application configuration constants
 export const APP_CONFIG = {
-  name: 'Prompt Stash',
+  name: 'PROMPT STASH',
   description: 'Local-first prompt storage and management tool',
   version: '1.0.0',
 } as const;
@@ -53,6 +53,38 @@ export const UI_TEXT = {
     close: 'Close',
     search: 'Search',
     all: 'All',
+  },
+  // Import/Export
+  importExport: {
+    export: 'Export Data',
+    import: 'Import Data',
+    exportSuccess: 'Data exported successfully',
+    importSuccess: 'Data imported successfully',
+    exportError: 'Failed to export data',
+    importError: 'Failed to import data',
+    selectiveExport: 'Selective Export',
+    selectiveImport: 'Selective Import',
+    exportOptions: 'Export Options',
+    importOptions: 'Import Options',
+    dataTypes: 'Data Types',
+    exportMode: 'Export Mode',
+    importMode: 'Import Mode',
+    mergeMode: 'Merge Mode',
+    replaceMode: 'Replace Mode',
+    selectAll: 'Select All',
+    selectNone: 'Select None',
+    resetDefaults: 'Reset Defaults',
+    startExport: 'Start Export',
+    startImport: 'Start Import',
+    cancel: 'Cancel',
+    exportPreview: 'Export Preview',
+    filename: 'Filename',
+    dataContent: 'Data Content',
+    securityNote: 'Security Note',
+    apiKeyNotExported: 'API keys are not exported to protect your privacy.',
+    apiKeyNotImported: 'API keys are not imported. Please reconfigure API keys after import.',
+    currentDataBackup: 'Current data will be automatically backed up to localStorage.',
+    replaceWarning: 'Replace mode will permanently delete existing data of selected types.',
   },
 } as const;
 

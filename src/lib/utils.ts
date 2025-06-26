@@ -132,6 +132,205 @@ export const fileUtils = {
   },
 };
 
+// Data backup and restore utilities
+export const dataUtils = {
+  exportSelectiveData: (options: {
+    exportPrompts: boolean;
+    exportChats: boolean;
+    exportSettings: boolean;
+  }): void => {
+    try {
+      const exportData: any = {
+        exportedAt: new Date().toISOString(),
+        version: '1.0.0',
+        appName: 'PROMPT STASH',
+      };
+
+      // Export prompts if selected
+      if (options.exportPrompts) {
+        exportData.prompts = storage.get<Prompt[]>(STORAGE_KEYS.prompts, []);
+      }
+
+      // Export chats if selected
+      if (options.exportChats) {
+        exportData.chats = storage.get<Chat[]>(STORAGE_KEYS.chats, []);
+      }
+
+      // Export settings if selected
+      if (options.exportSettings) {
+        exportData.settings = storage.get<AppSettings>(STORAGE_KEYS.settings, {
+          theme: 'light',
+          language: 'en',
+          autoSave: true,
+          agentSettings: {
+            enableActions: false,
+            tools: [],
+            temperature: 0.7,
+            maxTokens: 1000,
+          },
+        });
+      }
+
+      // Generate filename based on selected data types
+      const timestamp = new Date().toISOString().split('T')[0];
+      const dataTypes = [];
+      if (options.exportPrompts) dataTypes.push('prompts');
+      if (options.exportChats) dataTypes.push('chats');
+      if (options.exportSettings) dataTypes.push('settings');
+      
+      const typesSuffix = dataTypes.length === 3 ? 'all' : dataTypes.join('-');
+      const filename = `prompt-stash-${typesSuffix}-${timestamp}.json`;
+      
+      fileUtils.downloadJson(exportData, filename);
+    } catch (error) {
+      console.error('Failed to export data:', error);
+      throw new Error('Failed to export data');
+    }
+  },
+
+  exportAllData: (): void => {
+    dataUtils.exportSelectiveData({
+      exportPrompts: true,
+      exportChats: true,
+      exportSettings: true,
+    });
+  },
+
+  importSelectiveData: async (options: {
+    importPrompts: boolean;
+    importChats: boolean;
+    importSettings: boolean;
+    mode: 'replace' | 'merge';
+  }): Promise<boolean> => {
+    try {
+      const data = await fileUtils.importJson();
+      
+      // Validate imported data structure
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid data format');
+      }
+
+      const { prompts, chats, settings } = data;
+
+      // Backup current data before import
+      const backupData = {
+        prompts: storage.get<Prompt[]>(STORAGE_KEYS.prompts, []),
+        chats: storage.get<Chat[]>(STORAGE_KEYS.chats, []),
+        settings: storage.get<AppSettings>(STORAGE_KEYS.settings, {
+          theme: 'light',
+          language: 'en',
+          autoSave: true,
+          agentSettings: {
+            enableActions: false,
+            tools: [],
+            temperature: 0.7,
+            maxTokens: 1000,
+          },
+        }),
+      };
+      
+      const backupTimestamp = new Date().toISOString();
+      storage.set(`backup-${backupTimestamp}`, backupData);
+
+      // Import prompts
+      if (options.importPrompts && Array.isArray(prompts)) {
+        if (options.mode === 'replace') {
+          storage.set(STORAGE_KEYS.prompts, prompts);
+        } else {
+          // Merge mode
+          const existingPrompts = storage.get<Prompt[]>(STORAGE_KEYS.prompts, []);
+          const mergedPrompts = [...existingPrompts];
+          
+          prompts.forEach((newPrompt: Prompt) => {
+            const existingIndex = mergedPrompts.findIndex(p => p.id === newPrompt.id);
+            if (existingIndex >= 0) {
+              // Update existing prompt
+              mergedPrompts[existingIndex] = newPrompt;
+            } else {
+              // Add new prompt
+              mergedPrompts.push(newPrompt);
+            }
+          });
+          
+          storage.set(STORAGE_KEYS.prompts, mergedPrompts);
+        }
+      }
+
+      // Import chats
+      if (options.importChats && Array.isArray(chats)) {
+        if (options.mode === 'replace') {
+          storage.set(STORAGE_KEYS.chats, chats);
+        } else {
+          // Merge mode
+          const existingChats = storage.get<Chat[]>(STORAGE_KEYS.chats, []);
+          const mergedChats = [...existingChats];
+          
+          chats.forEach((newChat: Chat) => {
+            const existingIndex = mergedChats.findIndex(c => c.id === newChat.id);
+            if (existingIndex >= 0) {
+              // Update existing chat
+              mergedChats[existingIndex] = newChat;
+            } else {
+              // Add new chat
+              mergedChats.push(newChat);
+            }
+          });
+          
+          storage.set(STORAGE_KEYS.chats, mergedChats);
+        }
+      }
+
+      // Import settings
+      if (options.importSettings && settings) {
+        if (options.mode === 'replace') {
+          storage.set(STORAGE_KEYS.settings, settings);
+        } else {
+          // Merge mode - merge settings with existing ones
+          const existingSettings = storage.get<AppSettings>(STORAGE_KEYS.settings, {
+            theme: 'light',
+            language: 'en',
+            autoSave: true,
+            agentSettings: {
+              enableActions: false,
+              tools: [],
+              temperature: 0.7,
+              maxTokens: 1000,
+            },
+          });
+          
+          const mergedSettings = {
+            ...existingSettings,
+            ...settings,
+            agentSettings: {
+              ...existingSettings.agentSettings,
+              ...settings.agentSettings,
+            },
+          };
+          
+          storage.set(STORAGE_KEYS.settings, mergedSettings);
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Failed to import data:', error);
+      throw error;
+    }
+  },
+
+  clearAllData: (): void => {
+    try {
+      storage.remove(STORAGE_KEYS.prompts);
+      storage.remove(STORAGE_KEYS.chats);
+      storage.remove(STORAGE_KEYS.settings);
+      storage.remove(STORAGE_KEYS.openAIKey);
+    } catch (error) {
+      console.error('Failed to clear data:', error);
+      throw new Error('Failed to clear data');
+    }
+  },
+};
+
 // Clipboard utilities
 export const clipboardUtils = {
   copy: async (text: string): Promise<boolean> => {

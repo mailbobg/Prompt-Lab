@@ -46,6 +46,16 @@ export default function HomePage() {
     }, 100);
   };
 
+  const handleDataChange = () => {
+    // Force refresh of components after data import
+    if (promptManagerRef.current && promptManagerRef.current.refreshData) {
+      promptManagerRef.current.refreshData();
+    }
+    if (agentChatRef.current && agentChatRef.current.refreshData) {
+      agentChatRef.current.refreshData();
+    }
+  };
+
   return (
     <div className="h-screen flex bg-background">
       <Sidebar 
@@ -58,7 +68,10 @@ export default function HomePage() {
         onTagsChange={setSelectedTags}
       />
               <div className="flex-1 min-w-0 flex flex-col">
-          <Header onSettings={() => setIsSettingsOpen(true)} />
+          <Header 
+          onSettings={() => setIsSettingsOpen(true)}
+          onDataChange={handleDataChange}
+        />
           <main className="flex-1 overflow-hidden">
           {activeTab === 'prompts' ? (
             <PromptManager 
