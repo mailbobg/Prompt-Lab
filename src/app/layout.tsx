@@ -6,6 +6,9 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 export const metadata: Metadata = {
   title: APP_CONFIG.name,
   description: APP_CONFIG.description,
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export default function RootLayout({

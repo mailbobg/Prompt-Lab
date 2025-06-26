@@ -91,9 +91,11 @@ Prompt Lab is a comprehensive solution for managing, organizing, and deploying A
 ## Project Structure
 
 ```
+public/
+└── favicon.png            # Application favicon (from electron/assets/icon.png)
+
 src/
 ├── app/                    # Next.js App Router configuration
-│   ├── favicon.svg        # Application favicon
 │   ├── globals.css        # Global styling and CSS variables
 │   ├── layout.tsx         # Root layout component
 │   └── page.tsx           # Main application entry point

@@ -34,6 +34,30 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
   const localToast = useToast();
   const { success, error } = onToast || localToast;
 
+  // Function to highlight search text
+  const highlightText = (text: string, searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      return text;
+    }
+
+    const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+
+    return parts.map((part, index) => {
+      if (part.toLowerCase() === searchQuery.toLowerCase()) {
+        return (
+          <mark 
+            key={index} 
+            className="bg-yellow-200 dark:bg-yellow-800 dark:text-yellow-100 text-yellow-900 px-0.5 rounded-sm"
+          >
+            {part}
+          </mark>
+        );
+      }
+      return part;
+    });
+  };
+
   // Load data from local storage
   useEffect(() => {
     const storedPrompts = storage.get<Prompt[]>(STORAGE_KEYS.prompts, []);
@@ -59,7 +83,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
           id: generateId(),
           title: 'Article Summary',
           content: 'Please write a concise summary of the following article, including main points and conclusions:\n\n[Paste article content here]',
-          sample: '文章：《人工智能对教育的影响》\n\n摘要：本文探讨了人工智能技术在教育领域的应用和影响。主要观点包括：1. AI可以提供个性化学习体验；2. 智能辅导系统能够实时反馈学习进度；3. 需要关注数据隐私和教育公平问题。结论是AI将革命性地改变教育方式，但需要谨慎推进以确保技术服务于教育目标。',
+          sample: 'Article: "The Impact of Artificial Intelligence on Education"\n\nSummary: This article explores the application and impact of AI technology in the education field. Main points include: 1. AI can provide personalized learning experiences; 2. Intelligent tutoring systems can provide real-time feedback on learning progress; 3. Attention should be paid to data privacy and educational equity issues. The conclusion is that AI will revolutionize education, but it needs to be carefully implemented to ensure technology serves educational goals.',
           tags: ['Summary', 'Writing'],
           category: 'writing',
           isFavorite: false,
@@ -116,7 +140,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
 
   const handleCancel = () => {
     setIsEditing(false);
-    // 不要清空 selectedPrompt，保持当前选中的提示符以显示其内容
+    // Don't clear selectedPrompt, keep the currently selected prompt to display its content
     setEditForm({ title: '', content: '', sample: '', tags: [], category: 'other' });
   };
 
@@ -167,7 +191,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
     try {
       let contentToCopy = prompt.content;
       
-      // 如果有sample内容，则将其添加到复制内容中
+      // If there's sample content, add it to the copied content
       if (prompt.sample && prompt.sample.trim()) {
         contentToCopy = `${prompt.content}\n\n${prompt.sample}`;
       }
@@ -191,16 +215,16 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
   };
 
   const handleTestPrompt = async (prompt: Prompt) => {
-    // 增加使用次数
+    // Increment usage count
     incrementUsage(prompt.id);
     
-    // 准备要复制的内容
+    // Prepare content to copy
     let contentToCopy = prompt.content;
     if (prompt.sample && prompt.sample.trim()) {
       contentToCopy = `${prompt.content}\n\n${prompt.sample}`;
     }
     
-    // 复制到剪贴板
+    // Copy to clipboard
     try {
       await navigator.clipboard.writeText(contentToCopy);
       success('Copied', '', 1000);
@@ -209,7 +233,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
       return;
     }
     
-    // 调用回调函数跳转到agents页面并粘贴内容
+    // Call callback function to navigate to agents page and paste content
     if (onTestPrompt) {
       onTestPrompt(contentToCopy);
     }
@@ -232,15 +256,17 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
     success('Created successfully', 'New prompt has been added');
   };
 
-  // 过滤提示语
+  // Filter prompts
   const filteredPrompts = prompts.filter(prompt => {
-    // 搜索查询过滤
+    // Search query filter - extended to search all fields
     const matchesSearch = !searchQuery || 
       prompt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       prompt.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (prompt.sample && prompt.sample.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      prompt.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
       prompt.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    // 标签过滤
+    // Tag filter
     const matchesTags = selectedTags.length === 0 || 
       selectedTags.some(tag => prompt.tags.includes(tag));
 
@@ -281,7 +307,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                   )}
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-medium truncate flex-1">{prompt.title}</h3>
+                    <h3 className="font-medium truncate flex-1">{highlightText(prompt.title, searchQuery)}</h3>
                     <div className="flex items-center gap-0.5">
                       {[1, 2, 3, 4, 5].map((starIndex) => (
                         <button
@@ -302,13 +328,13 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                   </div>
                   
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                    {prompt.content}
+                    {highlightText(prompt.content, searchQuery)}
                   </p>
                   
                   <div className="flex flex-wrap gap-1 mb-2">
                     {prompt.tags.map((tag) => (
                       <span key={tag} className="tag">
-                        {tag}
+                        {highlightText(tag, searchQuery)}
                       </span>
                     ))}
                   </div>
@@ -330,7 +356,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
           <>
             {/* Action bar */}
             <div className="p-4 flex items-center justify-between">
-              <h3 className="font-semibold">{selectedPrompt.title}</h3>
+              <h3 className="font-semibold">{highlightText(selectedPrompt.title, searchQuery)}</h3>
               <div className="flex items-center gap-2 prompt-actions">
                 <button
                   onClick={() => {
@@ -449,7 +475,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                     </h4>
                     <div className="p-4">
                       <pre className="whitespace-pre-wrap text-sm">
-                        {selectedPrompt.content}
+                        {highlightText(selectedPrompt.content, searchQuery)}
                       </pre>
                     </div>
                   </div>
@@ -461,7 +487,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                       </h4>
                       <div className="p-4">
                         <pre className="whitespace-pre-wrap text-sm">
-                          {selectedPrompt.sample}
+                          {highlightText(selectedPrompt.sample || '', searchQuery)}
                         </pre>
                       </div>
                     </div>
@@ -474,7 +500,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                     <div className="flex flex-wrap gap-1">
                       {selectedPrompt.tags.map((tag) => (
                         <span key={tag} className="tag">
-                          {tag}
+                          {highlightText(tag, searchQuery)}
                         </span>
                       ))}
                     </div>
@@ -482,8 +508,8 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                   
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-muted-foreground">Category:</span>
-                      <span>{selectedPrompt.category}</span>
+                      <span className="text-muted-foreground">Category: </span>
+                      <span>{highlightText(selectedPrompt.category, searchQuery)}</span>
                     </div>
                     <div>
                       <span className="text-muted-foreground">Usage count:</span>

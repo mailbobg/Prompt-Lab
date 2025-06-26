@@ -85,4 +85,18 @@ export interface ExportData {
   settings: AppSettings;
   exportedAt: string;
   version: string;
+  appName: string;
+}
+
+export interface ImportOptions {
+  importPrompts: boolean;
+  importChats: boolean;
+  importSettings: boolean;
+  mode: 'replace' | 'merge';
+}
+
+export interface ExportOptions {
+  exportPrompts: boolean;
+  exportChats: boolean;
+  exportSettings: boolean;
 } 

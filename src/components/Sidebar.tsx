@@ -121,6 +121,7 @@ export function Sidebar({
       {activeTab === 'prompts' && (
         <div className="p-4">
           <SearchBar
+            placeholder="Search"
             value={searchQuery}
             onChange={(query) => onSearchChange(query)}
             onSearch={(query) => onSearchChange(query)}
