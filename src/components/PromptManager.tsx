@@ -1,12 +1,15 @@
 'use client';
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { Edit, Trash2, Copy, Star, Archive, Play } from 'lucide-react';
+import { Edit, Trash2, Copy, Star, Archive, Play, FileText, Eye, Search } from 'lucide-react';
 import { UI_TEXT, STORAGE_KEYS } from '@/constants';
 import { Prompt } from '@/types';
-import { cn, formatDate, generateId, storage } from '@/lib/utils';
+import { cn, formatDate, generateId, storage, promptUtils } from '@/lib/utils';
 import { useToast } from '@/hooks/useToast';
 import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
+import { JsonFormatter } from '@/components/ui/json-formatter';
+import { SmartTagInput } from '@/components/ui/smart-tag-input';
 
 interface PromptManagerProps {
   searchQuery?: string;
@@ -16,13 +19,16 @@ interface PromptManagerProps {
     error: (title: string, description?: string, duration?: number) => void;
   };
   onTestPrompt?: (content: string) => void;
+  onDataChange?: () => void;
 }
 
 export const PromptManager = forwardRef<any, PromptManagerProps>(function PromptManager(props, ref) {
-  const { searchQuery = '', selectedTags = [], onToast, onTestPrompt } = props;
+  const { searchQuery = '', selectedTags = [], onToast, onTestPrompt, onDataChange } = props;
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [showMarkdown, setShowMarkdown] = useState(true); // Default to markdown for content
+
   const [editForm, setEditForm] = useState({
     title: '',
     content: '',
@@ -34,6 +40,9 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
 
   const localToast = useToast();
   const { success, error } = onToast || localToast;
+
+  // 获取所有现有的标签
+  const existingTags = Array.from(new Set(prompts.flatMap(prompt => prompt.tags)));
 
   // Function to highlight search text
   const highlightText = (text: string, searchQuery: string) => {
@@ -59,6 +68,41 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
     });
   };
 
+  // 计算prompt中匹配搜索条件的数量
+  const getMatchCount = (prompt: Prompt, searchQuery: string, selectedTags: string[]) => {
+    if (!searchQuery?.trim() && selectedTags.length === 0) return 0;
+    
+    let count = 0;
+    
+    // 搜索词匹配计数
+    if (searchQuery?.trim()) {
+      const regex = new RegExp(searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      
+      // 在各个字段中计算匹配数量
+      count += (prompt.title.match(regex) || []).length;
+      count += (prompt.content.match(regex) || []).length;
+      count += (prompt.sample?.match(regex) || []).length;
+      count += (prompt.comments?.match(regex) || []).length;
+      count += (prompt.category.match(regex) || []).length;
+      
+      // 标签中的匹配
+      prompt.tags.forEach(tag => {
+        count += (tag.match(regex) || []).length;
+      });
+    }
+    
+    // 选中标签的匹配计数
+    if (selectedTags.length > 0) {
+      selectedTags.forEach(selectedTag => {
+        if (prompt.tags.includes(selectedTag)) {
+          count += 1;
+        }
+      });
+    }
+    
+    return count;
+  };
+
   // Load data from local storage
   useEffect(() => {
     const storedPrompts = storage.get<Prompt[]>(STORAGE_KEYS.prompts, []);
@@ -69,8 +113,8 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
         {
           id: generateId(),
           title: 'Code Optimization Prompt',
-          content: 'Please help me optimize the following code to make it more efficient and readable:\n\n[Paste your code here]',
-          sample: 'function fibonacci(n) {\n  if (n <= 1) return n;\n  return fibonacci(n-1) + fibonacci(n-2);\n}\n\n// 优化后:\nfunction fibonacci(n, memo = {}) {\n  if (n in memo) return memo[n];\n  if (n <= 1) return n;\n  memo[n] = fibonacci(n-1, memo) + fibonacci(n-2, memo);\n  return memo[n];\n}',
+          content: '# Code Optimization Request\n\nPlease help me optimize the following code to make it more **efficient** and **readable**:\n\n## Requirements:\n- Improve performance\n- Enhance readability\n- Follow best practices\n- Add proper documentation\n\n```\n[Paste your code here]\n```\n\n## Expected Output:\n1. Optimized code\n2. Explanation of changes\n3. Performance improvements',
+          sample: '## Original Code:\n```javascript\nfunction fibonacci(n) {\n  if (n <= 1) return n;\n  return fibonacci(n-1) + fibonacci(n-2);\n}\n```\n\n## Optimized Code:\n```javascript\nfunction fibonacci(n, memo = {}) {\n  if (n in memo) return memo[n];\n  if (n <= 1) return n;\n  memo[n] = fibonacci(n-1, memo) + fibonacci(n-2, memo);\n  return memo[n];\n}\n```\n\n### Improvements:\n- **Memoization**: Caches computed values\n- **Time Complexity**: O(n) instead of O(2^n)\n- **Space Efficiency**: Reduces redundant calculations',
           tags: ['Programming', 'Optimization'],
           category: 'coding',
           isFavorite: true,
@@ -83,14 +127,44 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
         {
           id: generateId(),
           title: 'Article Summary',
-          content: 'Please write a concise summary of the following article, including main points and conclusions:\n\n[Paste article content here]',
-          sample: 'Article: "The Impact of Artificial Intelligence on Education"\n\nSummary: This article explores the application and impact of AI technology in the education field. Main points include: 1. AI can provide personalized learning experiences; 2. Intelligent tutoring systems can provide real-time feedback on learning progress; 3. Attention should be paid to data privacy and educational equity issues. The conclusion is that AI will revolutionize education, but it needs to be carefully implemented to ensure technology serves educational goals.',
+          content: '# Article Summary Request\n\nPlease write a **concise summary** of the following article, including main points and conclusions:\n\n## Analysis Requirements:\n- Extract key themes and arguments\n- Identify supporting evidence\n- Summarize conclusions\n- Highlight important insights\n\n---\n\n**Article Content:**\n```\n[Paste article content here]\n```\n\n## Expected Format:\n### Main Points:\n1. Point 1\n2. Point 2\n3. Point 3\n\n### Key Insights:\n- Insight 1\n- Insight 2\n\n### Conclusion:\n[Summary of conclusions]',
+          sample: '{\n  "article_title": "The Impact of Artificial Intelligence on Education",\n  "summary": {\n    "main_points": [\n      {\n        "point": "Personalized Learning",\n        "description": "AI can provide customized learning experiences tailored to individual student needs"\n      },\n      {\n        "point": "Intelligent Tutoring", \n        "description": "Real-time feedback systems help track and improve learning progress"\n      },\n      {\n        "point": "Equity Considerations",\n        "description": "Important to address data privacy and educational access issues"\n      }\n    ],\n    "key_insights": [\n      "AI technology has transformative potential in education",\n      "Implementation requires careful consideration of ethical implications",\n      "Balance needed between technological advancement and human-centered education"\n    ],\n    "conclusion": "AI will revolutionize education by enabling personalized, efficient learning experiences. However, successful implementation requires thoughtful planning to ensure technology serves educational goals while maintaining equity and privacy standards.",\n    "confidence_score": 0.85,\n    "word_count": 156\n  }\n}',
           tags: ['Summary', 'Writing'],
           category: 'writing',
           isFavorite: false,
           isArchived: false,
           usage: 8,
           rating: 3,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          id: generateId(),
+          title: 'API Documentation Generator',
+          content: '# API Documentation Generator\n\nGenerate comprehensive API documentation for the following endpoint:\n\n## Input Requirements:\n- **HTTP Method**: [GET/POST/PUT/DELETE]\n- **Endpoint URL**: `/api/example`\n- **Description**: Brief description of functionality\n- **Parameters**: Request parameters and body\n- **Response**: Expected response format\n\n---\n\n### Endpoint Details:\n```\n[Paste your API endpoint details here]\n```\n\n## Documentation Format:\n\n### Overview\n[Brief description]\n\n### Request\n- **Method**: \n- **URL**: \n- **Headers**: \n- **Body**: \n\n### Response\n- **Status Codes**: \n- **Response Body**: \n\n### Examples\n**Request Example:**\n```json\n{\n  "key": "value"\n}\n```\n\n**Response Example:**\n```json\n{\n  "success": true,\n  "data": {}\n}\n```',
+          sample: '# POST /api/users\n\n## Overview\nCreates a new user account in the system.\n\n## Request\n- **Method**: `POST`\n- **URL**: `/api/users`\n- **Headers**: \n  - `Content-Type: application/json`\n  - `Authorization: Bearer <token>`\n- **Body**: User registration data\n\n## Parameters\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `name` | string | Yes | Full name |\n| `email` | string | Yes | Email address |\n| `password` | string | Yes | Password (min 8 chars) |\n\n## Response\n- **Status Codes**: \n  - `201`: User created successfully\n  - `400`: Invalid input data\n  - `409`: Email already exists\n\n## Examples\n\n**Request:**\n```json\n{\n  "name": "John Doe",\n  "email": "john@example.com",\n  "password": "securepass123"\n}\n```\n\n**Response (201):**\n```json\n{\n  "success": true,\n  "data": {\n    "id": "123",\n    "name": "John Doe",\n    "email": "john@example.com",\n    "created_at": "2024-01-01T00:00:00Z"\n  }\n}\n```',
+          comments: '## Usage Notes\n\n- This prompt works best for **REST APIs**\n- Supports multiple formats: JSON, XML, GraphQL\n- Include authentication requirements\n- Add rate limiting information if applicable\n\n### Tips:\n1. Be specific about data types\n2. Include all possible status codes\n3. Provide realistic examples\n4. Document error responses',
+          tags: ['API', 'Documentation', 'Development'],
+          category: 'coding',
+          isFavorite: false,
+          isArchived: false,
+          usage: 3,
+          rating: 4,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          id: generateId(),
+          title: 'JSON Data Processor',
+          content: '# JSON Data Processing\n\nProcess and transform the following data according to the specified requirements:\n\n## Input Data:\n```json\n[Paste your JSON data here]\n```\n\n## Processing Requirements:\n- **Validation**: Ensure data integrity and format correctness\n- **Transformation**: Apply specified data transformations\n- **Filtering**: Remove unwanted fields or records\n- **Aggregation**: Calculate summaries or statistics\n- **Output Format**: Structure according to requirements\n\n## Transformation Rules:\n1. Field mapping and renaming\n2. Data type conversions\n3. Value calculations and derivations\n4. Conditional logic applications\n5. Data validation and cleaning\n\n### Expected Output:\nReturn processed data in valid JSON format with:\n- Transformed structure\n- Clean and validated values\n- Summary statistics (if applicable)\n- Processing metadata',
+          sample: '{\n  "input": {\n    "users": [\n      {"id": 1, "name": "John Doe", "age": 30, "email": "john@example.com", "status": "active"},\n      {"id": 2, "name": "Jane Smith", "age": 25, "email": "jane@example.com", "status": "inactive"},\n      {"id": 3, "name": "Bob Johnson", "age": 35, "email": "bob@example.com", "status": "active"}\n    ]\n  },\n  "output": {\n    "active_users": [\n      {\n        "user_id": 1,\n        "full_name": "John Doe",\n        "contact": "john@example.com",\n        "age_group": "30-39",\n        "profile_complete": true\n      },\n      {\n        "user_id": 3,\n        "full_name": "Bob Johnson", \n        "contact": "bob@example.com",\n        "age_group": "30-39",\n        "profile_complete": true\n      }\n    ],\n    "statistics": {\n      "total_users": 3,\n      "active_count": 2,\n      "inactive_count": 1,\n      "average_age": 30,\n      "completion_rate": 1.0\n    },\n    "metadata": {\n      "processed_at": "2024-01-01T00:00:00Z",\n      "transformations_applied": ["filter_active", "rename_fields", "calculate_age_groups"],\n      "validation_passed": true\n    }\n  }\n}',
+          comments: '## JSON Processing Features\n\n### Supported Operations:\n- **Data Validation**: Schema validation and type checking\n- **Field Transformation**: Rename, combine, or split fields\n- **Filtering**: Apply conditions to include/exclude records\n- **Aggregation**: Sum, count, average, min/max calculations\n- **Nested Processing**: Handle complex nested JSON structures\n\n### Use Cases:\n- API response transformation\n- Data migration and ETL processes\n- Report generation from raw data\n- Data cleaning and normalization\n- Integration between different systems\n\n### Tips:\n- Always validate input JSON before processing\n- Use descriptive field names in output\n- Include metadata for tracking transformations\n- Handle edge cases and missing values\n- Preserve data relationships when transforming',
+          tags: ['JSON', 'Data Processing', 'Transformation'],
+          category: 'coding',
+          isFavorite: false,
+          isArchived: false,
+          usage: 1,
+          rating: 4,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
@@ -106,6 +180,10 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
   const savePrompts = (newPrompts: Prompt[]) => {
     setPrompts(newPrompts);
     storage.set(STORAGE_KEYS.prompts, newPrompts);
+    // 通知数据变化
+    if (onDataChange) {
+      onDataChange();
+    }
   };
 
   const handleEdit = (prompt: Prompt) => {
@@ -124,9 +202,13 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
   const handleSave = () => {
     if (!selectedPrompt) return;
     
+    // 标签规范化处理
+    const normalizedTags = promptUtils.normalizeTags(editForm.tags, prompts);
+    
     const updatedPrompt: Prompt = {
       ...selectedPrompt,
       ...editForm,
+      tags: normalizedTags,
       updatedAt: new Date().toISOString(),
     };
 
@@ -270,23 +352,28 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
     success('Created successfully', 'New prompt has been added');
   };
 
-  // Filter prompts
-  const filteredPrompts = prompts.filter(prompt => {
-    // Search query filter - extended to search all fields
-    const matchesSearch = !searchQuery || 
-      prompt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      prompt.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (prompt.sample && prompt.sample.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (prompt.comments && prompt.comments.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      prompt.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      prompt.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+  // Filter and sort prompts
+  const filteredPrompts = prompts
+    .filter(prompt => {
+      // Search query filter - extended to search all fields
+      const matchesSearch = !searchQuery || 
+        prompt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        prompt.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (prompt.sample && prompt.sample.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (prompt.comments && prompt.comments.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        prompt.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        prompt.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    // Tag filter
-    const matchesTags = selectedTags.length === 0 || 
-      selectedTags.some(tag => prompt.tags.includes(tag));
+      // Tag filter
+      const matchesTags = selectedTags.length === 0 || 
+        selectedTags.some(tag => prompt.tags.includes(tag));
 
-    return matchesSearch && matchesTags;
-  });
+      return matchesSearch && matchesTags;
+    })
+    .sort((a, b) => {
+      // 按更新时间降序排列，最新的在最上面
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
 
   useImperativeHandle(ref, () => ({
     addNewPrompt,
@@ -297,7 +384,15 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
       {/* Prompt list */}
       <div className="w-1/3 min-w-[300px] max-w-[400px] prompt-list border-r border-border overflow-y-auto">
         <div className="p-4">
-          <h2 className="text-lg font-semibold mb-4">{UI_TEXT.prompts.title}</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">{UI_TEXT.prompts.title}</h2>
+            {(searchQuery || selectedTags.length > 0) && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-muted rounded-md text-xs text-muted-foreground">
+                <Search className="w-3 h-3" />
+                <span>{filteredPrompts.length} 结果</span>
+              </div>
+            )}
+          </div>
           
           {filteredPrompts.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
@@ -322,8 +417,15 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                   )}
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-medium truncate flex-1">{highlightText(prompt.title, searchQuery)}</h3>
-                    <div className="flex items-center gap-0.5">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <h3 className="font-medium truncate">{highlightText(prompt.title, searchQuery)}</h3>
+                      {(searchQuery || selectedTags.length > 0) && (
+                        <div className="flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 text-primary rounded text-xs font-medium flex-shrink-0">
+                          {getMatchCount(prompt, searchQuery, selectedTags)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-0.5 flex-shrink-0">
                       {[1, 2, 3, 4, 5].map((starIndex) => (
                         <button
                           key={starIndex}
@@ -373,6 +475,16 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
             <div className="p-4 flex items-center justify-between">
               <h3 className="font-semibold">{highlightText(selectedPrompt.title, searchQuery)}</h3>
               <div className="flex items-center gap-2 prompt-actions">
+                <button
+                  onClick={() => setShowMarkdown(!showMarkdown)}
+                  className={cn(
+                    "p-2 hover:bg-accent rounded-md transition-colors",
+                    showMarkdown ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                  )}
+                  title={showMarkdown ? "Show raw text" : "Show markdown preview"}
+                >
+                  {showMarkdown ? <FileText className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
                 <button
                   onClick={() => {
                     copyPromptWithSample(selectedPrompt);
@@ -438,12 +550,11 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
 
                   <div>
                     <label className="block text-sm font-medium mb-2">Sample</label>
-                    <textarea
-                      placeholder="Enter sample usage example"
+                    <JsonFormatter
                       value={editForm.sample}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, sample: e.target.value }))}
-                      onKeyDown={handleKeyDown}
-                      className="w-full p-3 border border-border rounded-md bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring min-h-[100px] text-sm"
+                      onChange={(value) => setEditForm(prev => ({ ...prev, sample: value }))}
+                      placeholder="Enter sample usage example (JSON, Markdown, or any text format)"
+                      minRows={4}
                     />
                   </div>
 
@@ -462,26 +573,12 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                     <label className="block text-sm font-medium mb-2">
                       {UI_TEXT.prompts.tags}
                     </label>
-                    <input
-                      type="text"
+                    <SmartTagInput
+                      value={editForm.tags}
+                      onChange={(tags) => setEditForm(prev => ({ ...prev, tags }))}
                       placeholder="Enter tags separated by commas"
-                      value={editForm.tags.join(', ')}
-                      onChange={(e) => {
-                        const tags = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-                        setEditForm(prev => ({ ...prev, tags }));
-                      }}
-                      onKeyDown={handleKeyDown}
-                      className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      existingTags={existingTags}
                     />
-                    {editForm.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {editForm.tags.map((tag, index) => (
-                          <span key={index} className="tag">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
                   </div>
                   
                   <div className="flex gap-3 prompt-form-buttons">
@@ -503,10 +600,18 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                     <h4 className="text-sm font-medium text-muted-foreground mb-2">
                       {UI_TEXT.prompts.promptContent}
                     </h4>
-                    <div className="p-4">
-                      <pre className="whitespace-pre-wrap text-sm">
-                        {highlightText(selectedPrompt.content, searchQuery)}
-                      </pre>
+                    <div className="p-4 border border-border rounded-md bg-muted/20">
+                      {showMarkdown ? (
+                        <MarkdownRenderer 
+                          content={selectedPrompt.content} 
+                          searchQuery={searchQuery}
+                          size="xs"
+                        />
+                      ) : (
+                        <pre className="whitespace-pre-wrap text-xs font-mono">
+                          {highlightText(selectedPrompt.content, searchQuery)}
+                        </pre>
+                      )}
                     </div>
                   </div>
                   
@@ -515,10 +620,14 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                       <h4 className="text-sm font-medium text-muted-foreground mb-2">
                         Sample
                       </h4>
-                      <div className="p-4">
-                        <pre className="whitespace-pre-wrap text-sm">
-                          {highlightText(selectedPrompt.sample || '', searchQuery)}
-                        </pre>
+                      <div className="border border-border rounded-md bg-muted/20 p-2">
+                        <JsonFormatter
+                          value={selectedPrompt.sample || ''}
+                          onChange={() => {}} // Read-only in preview mode
+                          placeholder=""
+                          className="bg-transparent border-0"
+                          readOnly={true}
+                        />
                       </div>
                     </div>
                   )}
@@ -528,10 +637,17 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                       <h4 className="text-sm font-medium text-muted-foreground mb-2">
                         Comments
                       </h4>
-                      <div className="p-4">
-                        <pre className="whitespace-pre-wrap text-sm">
-                          {highlightText(selectedPrompt.comments || '', searchQuery)}
-                        </pre>
+                      <div className="p-4 border border-border rounded-md bg-muted/20">
+                        {showMarkdown ? (
+                          <MarkdownRenderer 
+                            content={selectedPrompt.comments || ''} 
+                            searchQuery={searchQuery}
+                          />
+                        ) : (
+                          <pre className="whitespace-pre-wrap text-sm font-mono">
+                            {highlightText(selectedPrompt.comments || '', searchQuery)}
+                          </pre>
+                        )}
                       </div>
                     </div>
                   )}

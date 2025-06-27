@@ -2,10 +2,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Sparkles } from 'lucide-react';
+import { X, Sparkles, Eye, FileText } from 'lucide-react';
 import { UI_TEXT } from '@/constants';
 import { Prompt } from '@/types';
-import { generateId } from '@/lib/utils';
+import { generateId, cn, storage, promptUtils } from '@/lib/utils';
+import { STORAGE_KEYS } from '@/constants';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
+import { JsonFormatter } from '@/components/ui/json-formatter';
+import { SmartTagInput } from '@/components/ui/smart-tag-input';
 
 interface NewPromptDialogProps {
   isOpen: boolean;
@@ -26,8 +30,13 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
     rating: 0,
   });
   
-  const [tagInput, setTagInput] = useState('');
+
   const [isGenerating, setIsGenerating] = useState(false);
+  const [previewField, setPreviewField] = useState<string | null>(null);
+
+  // 获取所有现有的标签
+  const existingPrompts = storage.get<Prompt[]>(STORAGE_KEYS.prompts, []);
+  const existingTags = Array.from(new Set(existingPrompts.flatMap(prompt => prompt.tags)));
 
   // Use prefilled data when dialog opens
   useEffect(() => {
@@ -42,7 +51,7 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
         isFavorite: prefilledData.isFavorite || false,
         rating: prefilledData.rating || 0,
       });
-      setTagInput(prefilledData.tags ? prefilledData.tags.join(', ') : '');
+
     } else if (isOpen && !prefilledData) {
       // Reset form for new prompt
       setFormData({
@@ -55,7 +64,7 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
         isFavorite: false,
         rating: 0,
       });
-      setTagInput('');
+
     }
   }, [isOpen, prefilledData]);
 
@@ -63,7 +72,14 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
     e.preventDefault();
     if (!formData.title.trim() || !formData.content.trim()) return;
 
-    onSave(formData);
+    // 获取现有的prompts进行标签规范化
+    const existingPrompts = storage.get<Prompt[]>(STORAGE_KEYS.prompts, []);
+    const normalizedTags = promptUtils.normalizeTags(formData.tags, existingPrompts);
+
+    onSave({
+      ...formData,
+      tags: normalizedTags,
+    });
     
     // Reset form
     setFormData({
@@ -76,15 +92,11 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
       isFavorite: false,
       rating: 0,
     });
-    setTagInput('');
+
     onClose();
   };
 
-  const handleTagsChange = (value: string) => {
-    setTagInput(value);
-    const tags = value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-    setFormData(prev => ({ ...prev, tags }));
-  };
+
 
   // Handle paste events explicitly
   const handlePaste = (e: React.ClipboardEvent, field: keyof typeof formData) => {
@@ -182,45 +194,106 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
 
           {/* Prompt */}
           <div>
-            <label className="block text-sm font-medium mb-2">Prompt Content</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium">Prompt Content</label>
+              <button
+                type="button"
+                onClick={() => setPreviewField(previewField === 'content' ? null : 'content')}
+                className={cn(
+                  "p-1.5 rounded-md transition-colors text-xs",
+                  previewField === 'content' ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"
+                )}
+                title={previewField === 'content' ? "Show editor" : "Show markdown preview"}
+              >
+                {previewField === 'content' ? <FileText className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+              </button>
+            </div>
             <p className="text-xs sm:text-sm text-muted-foreground mb-2">
-              The main prompt template content
+              The main prompt template content (supports Markdown formatting)
             </p>
-            <textarea
-              placeholder="Enter your prompt template"
-              value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              onKeyDown={(e) => handleKeyDown(e, 'content')}
-              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none text-sm"
-              rows={6}
-              required
-            />
+            {previewField === 'content' ? (
+              <div className="border border-border rounded-md p-3 min-h-[144px] bg-muted/20">
+                <MarkdownRenderer content={formData.content || 'Start typing to see markdown preview...'} />
+              </div>
+            ) : (
+              <textarea
+                placeholder="Enter your prompt template (supports Markdown)"
+                value={formData.content}
+                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                onKeyDown={(e) => handleKeyDown(e, 'content')}
+                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none text-sm"
+                rows={6}
+                required
+              />
+            )}
           </div>
 
           {/* Sample */}
           <div>
-            <label className="block text-sm font-medium mb-2">Sample</label>
-            <textarea
-              placeholder="Enter sample usage example"
-              value={formData.sample}
-              onChange={(e) => setFormData(prev => ({ ...prev, sample: e.target.value }))}
-              onKeyDown={(e) => handleKeyDown(e, 'sample')}
-              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none text-sm"
-              rows={4}
-            />
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium">Sample</label>
+              <button
+                type="button"
+                onClick={() => setPreviewField(previewField === 'sample' ? null : 'sample')}
+                className={cn(
+                  "p-1.5 rounded-md transition-colors text-xs",
+                  previewField === 'sample' ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"
+                )}
+                title={previewField === 'sample' ? "Show editor" : "Show markdown preview"}
+              >
+                {previewField === 'sample' ? <FileText className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+              </button>
+            </div>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-2">
+              Sample usage example (supports JSON with validation, Markdown, or any text format)
+            </p>
+            {previewField === 'sample' ? (
+              <div className="border border-border rounded-md p-3 min-h-[96px] bg-muted/20">
+                <MarkdownRenderer content={formData.sample || 'Start typing to see markdown preview...'} />
+              </div>
+            ) : (
+              <JsonFormatter
+                value={formData.sample}
+                onChange={(value) => setFormData(prev => ({ ...prev, sample: value }))}
+                placeholder="Enter sample usage example (JSON, Markdown, or any text format)"
+                minRows={4}
+              />
+            )}
           </div>
 
           {/* Comments */}
           <div>
-            <label className="block text-sm font-medium mb-2">Comments</label>
-            <textarea
-              placeholder="Enter additional comments or notes"
-              value={formData.comments}
-              onChange={(e) => setFormData(prev => ({ ...prev, comments: e.target.value }))}
-              onKeyDown={(e) => handleKeyDown(e, 'comments')}
-              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none text-sm"
-              rows={3}
-            />
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium">Comments</label>
+              <button
+                type="button"
+                onClick={() => setPreviewField(previewField === 'comments' ? null : 'comments')}
+                className={cn(
+                  "p-1.5 rounded-md transition-colors text-xs",
+                  previewField === 'comments' ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"
+                )}
+                title={previewField === 'comments' ? "Show editor" : "Show markdown preview"}
+              >
+                {previewField === 'comments' ? <FileText className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+              </button>
+            </div>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-2">
+              Additional comments or notes (supports Markdown formatting)
+            </p>
+            {previewField === 'comments' ? (
+              <div className="border border-border rounded-md p-3 min-h-[72px] bg-muted/20">
+                <MarkdownRenderer content={formData.comments || 'Start typing to see markdown preview...'} />
+              </div>
+            ) : (
+              <textarea
+                placeholder="Enter additional comments or notes (supports Markdown)"
+                value={formData.comments}
+                onChange={(e) => setFormData(prev => ({ ...prev, comments: e.target.value }))}
+                onKeyDown={(e) => handleKeyDown(e, 'comments')}
+                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none text-sm"
+                rows={3}
+              />
+            )}
           </div>
 
           {/* Tags */}
@@ -229,31 +302,12 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
             <p className="text-xs sm:text-sm text-muted-foreground mb-2">
               Enter relevant tags, separated by commas
             </p>
-            <input
-              type="text"
+            <SmartTagInput
+              value={formData.tags}
+              onChange={(tags) => setFormData(prev => ({ ...prev, tags }))}
               placeholder="Enter tags separated by commas"
-              value={tagInput}
-              onChange={(e) => handleTagsChange(e.target.value)}
-              onKeyDown={(e) => {
-                // Enable default paste behavior for tags
-                if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
-                  return;
-                }
-                if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
-                  return;
-                }
-              }}
-              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm"
+              existingTags={existingTags}
             />
-            {formData.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {formData.tags.map((tag, index) => (
-                  <span key={index} className="tag text-xs sm:text-sm">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Submit button */}
