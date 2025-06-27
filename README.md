@@ -10,6 +10,7 @@ Prompt Stash is a comprehensive solution for managing, organizing, and deploying
 ## Installation
 Download Mac/win version in the release.
 
+
 ## Screenshots
 
 ### Prompt Management Interface

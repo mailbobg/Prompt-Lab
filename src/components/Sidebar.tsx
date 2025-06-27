@@ -20,6 +20,7 @@ interface SidebarProps {
   onSearchChange: (query: string) => void;
   selectedTags: string[];
   onTagsChange: (tags: string[]) => void;
+  dataVersion?: number;
 }
 
 export function Sidebar({ 
@@ -29,7 +30,8 @@ export function Sidebar({
   searchQuery,
   onSearchChange,
   selectedTags,
-  onTagsChange
+  onTagsChange,
+  dataVersion
 }: SidebarProps) {
   const [showFilters, setShowFilters] = useState(false);
 
@@ -66,7 +68,7 @@ export function Sidebar({
       });
 
     setAvailableTags(sortedTags);
-  }, []);
+  }, [dataVersion]); // 监听dataVersion变化
 
   const toggleTag = (tag: string) => {
     onTagsChange(

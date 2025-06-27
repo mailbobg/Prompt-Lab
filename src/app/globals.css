@@ -166,4 +166,180 @@
       @apply flex-col space-y-2 space-x-0;
     }
   }
+
+  /* Markdown 代码高亮样式 */
+  .hljs {
+    @apply bg-muted text-foreground;
+  }
+  
+  /* Light theme code highlighting */
+  .hljs-comment,
+  .hljs-quote {
+    @apply text-gray-500;
+  }
+  
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-subst {
+    @apply text-blue-600 font-semibold;
+  }
+  
+  .hljs-number,
+  .hljs-literal,
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-tag .hljs-attr {
+    @apply text-purple-600;
+  }
+  
+  .hljs-string,
+  .hljs-doctag {
+    @apply text-green-600;
+  }
+  
+  .hljs-title,
+  .hljs-section,
+  .hljs-selector-id {
+    @apply text-red-600 font-semibold;
+  }
+  
+  .hljs-function,
+  .hljs-class .hljs-title {
+    @apply text-blue-700 font-semibold;
+  }
+  
+  .hljs-tag,
+  .hljs-name,
+  .hljs-attribute {
+    @apply text-blue-500;
+  }
+  
+  .hljs-regexp,
+  .hljs-link {
+    @apply text-orange-600;
+  }
+  
+  .hljs-symbol,
+  .hljs-bullet {
+    @apply text-purple-500;
+  }
+  
+  .hljs-built_in,
+  .hljs-builtin-name {
+    @apply text-cyan-600;
+  }
+  
+  .hljs-meta {
+    @apply text-gray-600;
+  }
+  
+  .hljs-deletion {
+    @apply bg-red-100 text-red-800;
+  }
+  
+  .hljs-addition {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  /* Dark theme code highlighting */
+  .dark .hljs-comment,
+  .dark .hljs-quote {
+    @apply text-gray-400;
+  }
+  
+  .dark .hljs-keyword,
+  .dark .hljs-selector-tag,
+  .dark .hljs-subst {
+    @apply text-blue-400 font-semibold;
+  }
+  
+  .dark .hljs-number,
+  .dark .hljs-literal,
+  .dark .hljs-variable,
+  .dark .hljs-template-variable,
+  .dark .hljs-tag .hljs-attr {
+    @apply text-purple-400;
+  }
+  
+  .dark .hljs-string,
+  .dark .hljs-doctag {
+    @apply text-green-400;
+  }
+  
+  .dark .hljs-title,
+  .dark .hljs-section,
+  .dark .hljs-selector-id {
+    @apply text-red-400 font-semibold;
+  }
+  
+  .dark .hljs-function,
+  .dark .hljs-class .hljs-title {
+    @apply text-blue-300 font-semibold;
+  }
+  
+  .dark .hljs-tag,
+  .dark .hljs-name,
+  .dark .hljs-attribute {
+    @apply text-blue-300;
+  }
+  
+  .dark .hljs-regexp,
+  .dark .hljs-link {
+    @apply text-orange-400;
+  }
+  
+  .dark .hljs-symbol,
+  .dark .hljs-bullet {
+    @apply text-purple-300;
+  }
+  
+  .dark .hljs-built_in,
+  .dark .hljs-builtin-name {
+    @apply text-cyan-400;
+  }
+  
+  .dark .hljs-meta {
+    @apply text-gray-300;
+  }
+  
+  .dark .hljs-deletion {
+    @apply bg-red-900 text-red-200;
+  }
+  
+  .dark .hljs-addition {
+    @apply bg-green-900 text-green-200;
+  }
+
+  /* JSON编辑器样式 */
+  .json-editor {
+    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  
+  .json-status-indicator {
+    @apply inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full border;
+  }
+  
+  .json-status-valid {
+    @apply bg-green-50 text-green-700 border-green-200;
+  }
+  
+  .dark .json-status-valid {
+    @apply bg-green-900/20 text-green-400 border-green-800;
+  }
+  
+  .json-status-invalid {
+    @apply bg-red-50 text-red-700 border-red-200;
+  }
+  
+  .dark .json-status-invalid {
+    @apply bg-red-900/20 text-red-400 border-red-800;
+  }
+  
+  .json-status-text {
+    @apply bg-gray-50 text-gray-700 border-gray-200;
+  }
+  
+  .dark .json-status-text {
+    @apply bg-gray-900/20 text-gray-400 border-gray-800;
+  }
 } 

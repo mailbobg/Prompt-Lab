@@ -88,6 +88,47 @@ export const promptUtils = {
       new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     );
   },
+
+  // 标签规范化 - 大小写不敏感，优先使用已有的标签格式
+  normalizeTags: (newTags: string[], existingPrompts: Prompt[] = []): string[] => {
+    // 获取所有已有的标签
+    const allExistingTags = new Set<string>();
+    existingPrompts.forEach(prompt => {
+      prompt.tags.forEach(tag => allExistingTags.add(tag));
+    });
+
+    // 创建小写到实际标签的映射
+    const lowerCaseMap = new Map<string, string>();
+    allExistingTags.forEach(tag => {
+      lowerCaseMap.set(tag.toLowerCase(), tag);
+    });
+
+    // 规范化新标签
+    const normalizedTags: string[] = [];
+    const seenLowerCase = new Set<string>();
+
+    newTags.forEach(tag => {
+      const trimmed = tag.trim();
+      if (trimmed.length === 0) return;
+
+      const lowerCase = trimmed.toLowerCase();
+      
+      // 避免重复标签
+      if (seenLowerCase.has(lowerCase)) return;
+      seenLowerCase.add(lowerCase);
+
+      // 如果已有相同的标签（忽略大小写），使用已有的格式
+      if (lowerCaseMap.has(lowerCase)) {
+        normalizedTags.push(lowerCaseMap.get(lowerCase)!);
+      } else {
+        // 新标签，首字母大写处理
+        const normalized = trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+        normalizedTags.push(normalized);
+      }
+    });
+
+    return normalizedTags;
+  },
 };
 
 // File import/export utilities

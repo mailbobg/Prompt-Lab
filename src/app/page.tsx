@@ -18,6 +18,7 @@ export default function HomePage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNewPromptOpen, setIsNewPromptOpen] = useState(false);
   const [prefilledPromptData, setPrefilledPromptData] = useState<any>(null);
+  const [dataVersion, setDataVersion] = useState(0); // 用于通知数据变化
   const { toasts, removeToast, success, error } = useToast();
   const promptManagerRef = useRef<any>(null);
   const agentChatRef = useRef<any>(null);
@@ -28,6 +29,7 @@ export default function HomePage() {
     }
     setIsNewPromptOpen(false);
     setPrefilledPromptData(null);
+    setDataVersion(prev => prev + 1); // 通知数据变化
   };
 
   const handleNewPromptFromChat = (promptData: any) => {
@@ -54,6 +56,7 @@ export default function HomePage() {
     if (agentChatRef.current && agentChatRef.current.refreshData) {
       agentChatRef.current.refreshData();
     }
+    setDataVersion(prev => prev + 1); // 通知数据变化
   };
 
   return (
@@ -66,6 +69,7 @@ export default function HomePage() {
         onSearchChange={setSearchQuery}
         selectedTags={selectedTags}
         onTagsChange={setSelectedTags}
+        dataVersion={dataVersion}
       />
               <div className="flex-1 min-w-0 flex flex-col">
           <Header 
@@ -80,6 +84,7 @@ export default function HomePage() {
               selectedTags={selectedTags}
               onToast={{ success, error }}
               onTestPrompt={handleTestPrompt}
+              onDataChange={() => setDataVersion(prev => prev + 1)}
             />
           ) : (
             <AgentChat 
