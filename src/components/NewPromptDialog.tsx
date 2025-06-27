@@ -19,6 +19,7 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
     title: '',
     content: '',
     sample: '',
+    comments: '',
     tags: [] as string[],
     category: 'other',
     isFavorite: false,
@@ -35,6 +36,7 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
         title: prefilledData.title || '',
         content: prefilledData.content || '',
         sample: prefilledData.sample || '',
+        comments: prefilledData.comments || '',
         tags: prefilledData.tags || [],
         category: prefilledData.category || 'other',
         isFavorite: prefilledData.isFavorite || false,
@@ -47,6 +49,7 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
         title: '',
         content: '',
         sample: '',
+        comments: '',
         tags: [],
         category: 'other',
         isFavorite: false,
@@ -67,6 +70,7 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
       title: '',
       content: '',
       sample: '',
+      comments: '',
       tags: [],
       category: 'other',
       isFavorite: false,
@@ -203,6 +207,19 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
               onKeyDown={(e) => handleKeyDown(e, 'sample')}
               className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none text-sm"
               rows={4}
+            />
+          </div>
+
+          {/* Comments */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Comments</label>
+            <textarea
+              placeholder="Enter additional comments or notes"
+              value={formData.comments}
+              onChange={(e) => setFormData(prev => ({ ...prev, comments: e.target.value }))}
+              onKeyDown={(e) => handleKeyDown(e, 'comments')}
+              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none text-sm"
+              rows={3}
             />
           </div>
 

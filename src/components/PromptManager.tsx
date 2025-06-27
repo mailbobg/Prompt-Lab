@@ -27,6 +27,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
     title: '',
     content: '',
     sample: '',
+    comments: '',
     tags: [] as string[],
     category: 'other',
   });
@@ -113,6 +114,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
       title: prompt.title,
       content: prompt.content,
       sample: prompt.sample || '',
+      comments: prompt.comments || '',
       tags: prompt.tags,
       category: prompt.category,
     });
@@ -141,7 +143,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
   const handleCancel = () => {
     setIsEditing(false);
     // Don't clear selectedPrompt, keep the currently selected prompt to display its content
-    setEditForm({ title: '', content: '', sample: '', tags: [], category: 'other' });
+    setEditForm({ title: '', content: '', sample: '', comments: '', tags: [], category: 'other' });
   };
 
   // Handle keyboard shortcuts for better paste support
@@ -275,6 +277,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
       prompt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       prompt.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (prompt.sample && prompt.sample.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (prompt.comments && prompt.comments.toLowerCase().includes(searchQuery.toLowerCase())) ||
       prompt.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
       prompt.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -298,7 +301,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
           
           {filteredPrompts.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
-              {prompts.length === 0 ? UI_TEXT.prompts.noPrompts : '未找到匹配的提示语'}
+              {prompts.length === 0 ? UI_TEXT.prompts.noPrompts : 'No matching prompts found'}
             </div>
           ) : (
             <div className="space-y-3">
@@ -306,10 +309,10 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                 <div
                   key={prompt.id}
                   onClick={() => {
-                    // 如果正在编辑，先退出编辑状态，然后切换选中的提示符
+                    // Exit editing mode first if currently editing, then switch to selected prompt
                     if (isEditing) {
                       setIsEditing(false);
-                      setEditForm({ title: '', content: '', sample: '', tags: [], category: 'other' });
+                      setEditForm({ title: '', content: '', sample: '', comments: '', tags: [], category: 'other' });
                     }
                     setSelectedPrompt(prompt);
                   }}
@@ -436,11 +439,22 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                   <div>
                     <label className="block text-sm font-medium mb-2">Sample</label>
                     <textarea
-                      placeholder="输入示例内容"
+                      placeholder="Enter sample usage example"
                       value={editForm.sample}
                       onChange={(e) => setEditForm(prev => ({ ...prev, sample: e.target.value }))}
                       onKeyDown={handleKeyDown}
                       className="w-full p-3 border border-border rounded-md bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring min-h-[100px] text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Comments</label>
+                    <textarea
+                      placeholder="Enter additional comments or notes"
+                      value={editForm.comments}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, comments: e.target.value }))}
+                      onKeyDown={handleKeyDown}
+                      className="w-full p-3 border border-border rounded-md bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring min-h-[80px] text-sm"
                     />
                   </div>
 
@@ -504,6 +518,19 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                       <div className="p-4">
                         <pre className="whitespace-pre-wrap text-sm">
                           {highlightText(selectedPrompt.sample || '', searchQuery)}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedPrompt.comments && (
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                        Comments
+                      </h4>
+                      <div className="p-4">
+                        <pre className="whitespace-pre-wrap text-sm">
+                          {highlightText(selectedPrompt.comments || '', searchQuery)}
                         </pre>
                       </div>
                     </div>
