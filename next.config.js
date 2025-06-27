@@ -2,6 +2,7 @@
 const nextConfig = {
   // 支持静态导出（用于Electron）
   trailingSlash: true,
+  assetPrefix: './',
   images: {
     unoptimized: true,
   },

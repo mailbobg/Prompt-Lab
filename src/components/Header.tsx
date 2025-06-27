@@ -61,13 +61,20 @@ export function Header({ onSettings, onDataChange }: HeaderProps = {}) {
 
   return (
     <>
-      <header className="h-16 border-b border-border bg-card px-6 flex items-center justify-between">
+      <header className="h-16 border-b border-border bg-card px-6 flex items-center justify-between" style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <img 
-              src="/favicon.png" 
+              src="./favicon.png" 
               alt="Prompt Stash Icon" 
               className="w-6 h-6"
+              onError={(e) => {
+                // Fallback for path compatibility
+                const target = e.target as HTMLImageElement;
+                if (target.src.includes('./favicon.png')) {
+                  target.src = '/favicon.png';
+                }
+              }}
             />
             <h1 className="text-sm font-bold">{APP_CONFIG.name}</h1>
           </div>
@@ -76,7 +83,7 @@ export function Header({ onSettings, onDataChange }: HeaderProps = {}) {
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
           {/* Import/Export */}
           <button
             onClick={handleImportData}

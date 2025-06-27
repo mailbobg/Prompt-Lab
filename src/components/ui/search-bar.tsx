@@ -45,6 +45,14 @@ const SearchBar = ({
     if (e.key === "Enter") {
       handleSubmit(e as React.FormEvent)
     }
+    
+    // Enable paste and select all shortcuts
+    if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+      return; // Let the default paste behavior work
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+      return; // Let the default select all behavior work
+    }
   }
 
   return (

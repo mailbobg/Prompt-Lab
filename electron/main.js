@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, Tray, Menu, ipcMain, shell, dialog } = require('electron');
 const path = require('path');
 const isDev = process.env.NODE_ENV === 'development';
 const { spawn } = require('child_process');
@@ -6,6 +6,15 @@ const { spawn } = require('child_process');
 let mainWindow;
 let tray;
 let nextServer;
+
+// 检查并确保托盘存在
+function ensureTray() {
+  if (!tray || tray.isDestroyed()) {
+    console.log('托盘不存在或已销毁，重新创建');
+    createTray();
+  }
+  return tray && !tray.isDestroyed();
+}
 
 // 启动Next.js开发服务器或使用生产构建
 function startNextServer() {
@@ -71,14 +80,22 @@ async function createWindow() {
     height: 800,
     minWidth: 1000,
     minHeight: 600,
+    icon: path.join(__dirname, 'assets', 'icon.png'), // 添加图标
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
       webSecurity: true,
+      // 启用剪贴板访问权限
+      experimentalFeatures: true,
+      // 允许网页访问剪贴板
+      additionalArguments: ['--enable-clipboard-features'],
     },
     show: false, // 先不显示，等加载完成后再显示
-    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    // 隐藏标题栏，让网页内容控制拖拽区域
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
+    // 设置窗口可拖拽
+    movable: true,
   });
 
   if (isDev) {
@@ -104,17 +121,37 @@ async function createWindow() {
     console.log('Electron窗口已显示');
   });
 
-  // 窗口关闭时最小化到托盘而不是退出
+  // 启用剪贴板快捷键支持
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    // 允许标准剪贴板快捷键通过
+    if (input.control || input.meta) {
+      if (input.key === 'c' || input.key === 'v' || input.key === 'x' || input.key === 'a') {
+        // 允许这些快捷键正常工作
+        return;
+      }
+    }
+  });
+
+    // 窗口关闭时最小化到托盘
   mainWindow.on('close', (event) => {
     if (!app.isQuiting) {
       event.preventDefault();
+      
+      console.log('开始最小化到托盘');
+      
+      // 确保托盘图标存在
+      if (!ensureTray()) {
+        console.error('无法创建或恢复托盘图标');
+        // 如果托盘创建失败，就不要隐藏窗口
+        return;
+      }
+      
       mainWindow.hide();
       console.log('应用已最小化到托盘');
       
-      // 显示托盘通知
-      if (process.platform === 'darwin') {
-        app.dock.hide();
-      }
+      // 在macOS上，不要隐藏dock图标，这可能会影响托盘显示
+      // 只有在真正退出时才隐藏dock
+      console.log('窗口已隐藏，托盘图标应该可见');
     }
   });
 
@@ -125,22 +162,188 @@ async function createWindow() {
   });
 }
 
+function setupApplicationMenu() {
+  const template = [
+    {
+      label: 'Prompt Stash',
+      submenu: [
+        { 
+          label: 'About Prompt Stash', 
+          role: 'about' 
+        },
+        { type: 'separator' },
+        { 
+          label: 'Hide Prompt Stash', 
+          accelerator: 'Command+H', 
+          role: 'hide' 
+        },
+        { 
+          label: 'Hide Others', 
+          accelerator: 'Command+Alt+H', 
+          role: 'hideothers' 
+        },
+        { 
+          label: 'Show All', 
+          role: 'unhide' 
+        },
+        { type: 'separator' },
+        { 
+          label: 'Exit Prompt Stash', 
+          accelerator: 'Command+Q', 
+          click: () => {
+            app.isQuiting = true;
+            app.quit();
+          }
+        }
+      ]
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { 
+          label: 'Undo', 
+          accelerator: 'CmdOrCtrl+Z', 
+          role: 'undo' 
+        },
+        { 
+          label: 'Redo', 
+          accelerator: 'Shift+CmdOrCtrl+Z', 
+          role: 'redo' 
+        },
+        { type: 'separator' },
+        { 
+          label: 'Cut', 
+          accelerator: 'CmdOrCtrl+X', 
+          role: 'cut' 
+        },
+        { 
+          label: 'Copy', 
+          accelerator: 'CmdOrCtrl+C', 
+          role: 'copy' 
+        },
+        { 
+          label: 'Paste', 
+          accelerator: 'CmdOrCtrl+V', 
+          role: 'paste' 
+        },
+        { 
+          label: 'Select All', 
+          accelerator: 'CmdOrCtrl+A', 
+          role: 'selectall' 
+        }
+      ]
+    },
+    {
+      label: 'View',
+      submenu: [
+        { 
+          label: 'Reload', 
+          accelerator: 'CmdOrCtrl+R', 
+          click: () => {
+            mainWindow.reload();
+          }
+        },
+        { 
+          label: 'Force Reload', 
+          accelerator: 'CmdOrCtrl+Shift+R', 
+          click: () => {
+            mainWindow.webContents.reloadIgnoringCache();
+          }
+        },
+        { 
+          label: 'Toggle Developer Tools', 
+          accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I', 
+          click: () => {
+            mainWindow.webContents.toggleDevTools();
+          }
+        },
+        { type: 'separator' },
+        { 
+          label: 'Actual Size', 
+          accelerator: 'CmdOrCtrl+0', 
+          role: 'resetZoom' 
+        },
+        { 
+          label: 'Zoom In', 
+          accelerator: 'CmdOrCtrl+Plus', 
+          role: 'zoomIn' 
+        },
+        { 
+          label: 'Zoom Out', 
+          accelerator: 'CmdOrCtrl+-', 
+          role: 'zoomOut' 
+        },
+        { type: 'separator' },
+        { 
+          label: 'Toggle Fullscreen', 
+          accelerator: process.platform === 'darwin' ? 'Ctrl+Command+F' : 'F11', 
+          role: 'togglefullscreen' 
+        }
+      ]
+    },
+    {
+      label: 'Window',
+      submenu: [
+        { 
+          label: 'Minimize', 
+          accelerator: 'CmdOrCtrl+M', 
+          role: 'minimize' 
+        },
+        { 
+          label: 'Close', 
+          accelerator: 'CmdOrCtrl+W', 
+          role: 'close' 
+        }
+      ]
+    }
+  ];
+
+  // Windows和Linux平台需要去掉macOS特有的菜单项
+  if (process.platform !== 'darwin') {
+    template.shift(); // 移除应用菜单
+  }
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+}
+
 function createTray() {
-  // 创建系统托盘 - 使用默认图标如果自定义图标不存在
-  let trayIconPath;
-  try {
-    trayIconPath = path.join(__dirname, 'assets', 'tray-icon.png');
-  } catch (error) {
-    // 如果图标不存在，使用空图标
+  // 创建系统托盘
+  let trayIconPath = path.join(__dirname, 'assets', 'tray-icon.png');
+  
+  // 检查托盘图标文件是否存在
+  const fs = require('fs');
+  if (!fs.existsSync(trayIconPath)) {
+    console.log('托盘图标不存在，使用主图标');
     trayIconPath = path.join(__dirname, 'assets', 'icon.png');
   }
   
+  console.log('创建托盘图标，路径:', trayIconPath);
+  
   try {
     tray = new Tray(trayIconPath);
+    console.log('托盘图标创建成功');
+    
+    // macOS特殊处理
+    if (process.platform === 'darwin') {
+      // 设置图标为模板图标以适应系统主题
+      tray.setIgnoreDoubleClickEvents(false);
+      
+      // 在macOS上，确保托盘图标可见
+      tray.setPressedImage(trayIconPath);
+      
+      // 添加一个测试回调来确认托盘是否工作
+      setTimeout(() => {
+        if (tray && !tray.isDestroyed()) {
+          console.log('macOS托盘图标状态正常');
+        } else {
+          console.log('macOS托盘图标状态异常');
+        }
+      }, 1000);
+    }
   } catch (error) {
-    console.log('无法创建托盘图标，使用默认图标');
-    // 使用系统默认图标
-    tray = new Tray(path.join(__dirname, 'assets', 'icon.png'));
+    console.error('创建托盘图标失败:', error);
+    return;
   }
   
   const contextMenu = Menu.buildFromTemplate([
@@ -148,18 +351,16 @@ function createTray() {
       label: 'Show Prompt Stash',
       click: () => {
         mainWindow.show();
-        if (process.platform === 'darwin') {
-          app.dock.show();
-        }
+        mainWindow.focus();
+        console.log('通过托盘菜单显示窗口');
       }
     },
     {
       label: 'Hide to Tray',
       click: () => {
         mainWindow.hide();
-        if (process.platform === 'darwin') {
-          app.dock.hide();
-        }
+        console.log('通过托盘菜单隐藏窗口');
+        // 在macOS上不隐藏dock，保持与关闭按钮行为一致
       }
     },
     { type: 'separator' },
@@ -172,7 +373,7 @@ function createTray() {
     },
     { type: 'separator' },
     {
-      label: 'Quit',
+      label: 'Exit Application',
       click: () => {
         app.isQuiting = true;
         app.quit();
@@ -183,11 +384,20 @@ function createTray() {
   tray.setToolTip('Prompt Stash - Local Prompt Manager');
   tray.setContextMenu(contextMenu);
   
+  console.log('托盘设置完成');
+  
   // 双击托盘图标显示窗口
   tray.on('double-click', () => {
+    console.log('托盘图标被双击');
     mainWindow.show();
-    if (process.platform === 'darwin') {
-      app.dock.show();
+    mainWindow.focus();
+  });
+  
+  // 单击托盘图标（Windows/Linux）
+  tray.on('click', () => {
+    console.log('托盘图标被单击');
+    if (process.platform !== 'darwin') {
+      mainWindow.show();
     }
   });
 }
@@ -216,6 +426,7 @@ if (!gotTheLock) {
     
     await createWindow();
     createTray();
+    setupApplicationMenu();
     
     console.log('Electron应用已启动');
   });
@@ -223,18 +434,19 @@ if (!gotTheLock) {
 
 // 所有窗口关闭时的行为
 app.on('window-all-closed', () => {
-  // 在macOS上，除非用户明确退出，否则应用会保持激活状态
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  // 不要自动退出应用，保持在托盘中运行
+  // 用户需要通过托盘菜单或快捷键明确退出
+  console.log('所有窗口已关闭，应用继续在托盘中运行');
 });
 
 app.on('activate', () => {
-  // 在macOS上，当dock图标被点击且没有其他窗口打开时，重新创建窗口
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  } else {
+  // 当dock图标被点击时，显示主窗口
+  if (mainWindow) {
     mainWindow.show();
+    mainWindow.focus();
+  } else {
+    // 如果主窗口不存在，重新创建
+    createWindow();
   }
 });
 

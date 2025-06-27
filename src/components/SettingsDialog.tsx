@@ -28,6 +28,18 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
     onClose();
   };
 
+  // Handle keyboard shortcuts for better paste support
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Enable Ctrl+V (Cmd+V on Mac) paste
+    if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+      return; // Let the default paste behavior work
+    }
+    // Enable Ctrl+A (Cmd+A on Mac) select all
+    if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+      return;
+    }
+  };
+
   // Handle click outside to close dialog
   const handleBackgroundClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -71,6 +83,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
               placeholder="sk-proj-..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="w-full rounded-md border border-border bg-input py-2 pl-10 pr-4"
             />
           </div>

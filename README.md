@@ -1,10 +1,32 @@
-# Prompt Lab
+# Prompt Stash
 
 A professional prompt storage and management application designed for AI workflow optimization. Built with modern web technologies and focused on local-first data privacy.
 
 ## Overview
 
-Prompt Lab is a comprehensive solution for managing, organizing, and deploying AI prompts with integrated chat functionality. The application prioritizes user privacy through local storage while providing enterprise-grade features for prompt management and AI interaction.
+Prompt Stash is a comprehensive solution for managing, organizing, and deploying AI prompts with integrated chat functionality. The application prioritizes user privacy through local storage while providing enterprise-grade features for prompt management and AI interaction.
+
+
+## Installation
+Download Mac/win version in the release.
+
+## Screenshots
+
+### Prompt Management Interface
+![Prompt Management](./images/prompt-management.png)
+*Main prompt management interface showcasing prompt library, tagging system, and detailed content preview*
+
+### AI Chat Interface
+![Selective Export](./images/selective-export.png)
+*Selective export functionality supporting prompts, chat history, and application settings export*
+
+### download and upload data
+![Code Optimization](./images/code-optimization.png)
+*Code optimization prompt example with complete prompt content and sample code*
+
+### dark mode
+![AI Chat Interface](./images/ai-chat.png)
+*AI chat interface with multi-session management and real-time conversation capabilities*
 
 ## Core Features
 
@@ -277,6 +299,6 @@ This project is licensed under the MIT License. See the LICENSE file for complet
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: 2024  
+**Version**: 1.0.1 
+**Last Updated**: 2025
 **Maintainers**: Development Team 
