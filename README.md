@@ -8,7 +8,36 @@ Prompt Stash is a comprehensive solution for managing, organizing, and deploying
 
 
 ## Installation
-Download Mac/win version in the release.
+
+### 📥 Quick Download
+
+Download the latest version for your platform:
+
+**[📦 Download from GitHub Releases](https://github.com/mailbobg/Prompt-Lab/releases/tag/macos)**
+
+**Available Platforms:**
+- **macOS** (Intel x64): `Prompt Stash-1.0.0.dmg`
+- **macOS** (Apple Silicon): `Prompt Stash-1.0.0-arm64.dmg`
+- **Windows**: `Prompt Stash Setup 1.0.0.exe`
+- **Linux**: `Prompt Stash-1.0.0.AppImage`
+
+### Installation Instructions
+
+**macOS:**
+1. Download the appropriate DMG file for your Mac
+2. Double-click the DMG file to mount it
+3. Drag "Prompt Stash" to your Applications folder
+4. First launch: Right-click → Open (due to unsigned app)
+
+**Windows:**
+1. Download the EXE installer
+2. Run the installer and follow the setup wizard
+3. Launch from Start Menu or Desktop shortcut
+
+**Linux:**
+1. Download the AppImage file
+2. Make it executable: `chmod +x Prompt\ Stash-1.0.0.AppImage`
+3. Run directly: `./Prompt\ Stash-1.0.0.AppImage`
 
 
 ## Screenshots

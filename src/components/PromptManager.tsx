@@ -389,7 +389,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
             {(searchQuery || selectedTags.length > 0) && (
               <div className="flex items-center gap-1 px-2 py-1 bg-muted rounded-md text-xs text-muted-foreground">
                 <Search className="w-3 h-3" />
-                <span>{filteredPrompts.length} 结果</span>
+                <span>{filteredPrompts.length} results</span>
               </div>
             )}
           </div>

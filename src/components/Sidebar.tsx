@@ -158,7 +158,7 @@ export function Sidebar({
                         className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
                       >
                         <X className="w-3 h-3" />
-                        清除全部
+                        Clear All
                       </button>
                     )}
                   </div>
@@ -166,7 +166,7 @@ export function Sidebar({
                   {/* 已选择的标签 */}
                   {selectedTags.length > 0 && (
                     <div className="mb-3 p-2 bg-muted/50 rounded-md">
-                      <div className="text-xs text-muted-foreground mb-1">已选择：</div>
+                      <div className="text-xs text-muted-foreground mb-1">Selected:</div>
                       <div className="flex flex-wrap gap-1">
                         {selectedTags.map((tag) => (
                           <button
@@ -209,7 +209,7 @@ export function Sidebar({
                   
                   {availableTags.length === 0 && (
                     <div className="text-xs text-muted-foreground text-center py-4">
-                      暂无可用标签
+                      No tags available
                     </div>
                   )}
                 </div>

@@ -90,7 +90,7 @@ const SearchBar = ({
           type="button"
           onClick={handleClear}
           className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-accent rounded-full transition-colors"
-          title="清除搜索"
+          title="Clear search"
         >
           <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
         </button>
