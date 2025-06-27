@@ -316,6 +316,18 @@ export const AgentChat = forwardRef<any, AgentChatProps>(function AgentChat({ on
     }
   };
 
+  // Handle keyboard shortcuts for better paste support
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Enable Ctrl+V (Cmd+V on Mac) paste
+    if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+      return; // Let the default paste behavior work
+    }
+    // Enable Ctrl+A (Cmd+A on Mac) select all
+    if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+      return;
+    }
+  };
+
   // 暴露给父组件的方法
   useImperativeHandle(ref, () => ({
     pasteContent: (content: string) => {
@@ -406,7 +418,10 @@ export const AgentChat = forwardRef<any, AgentChatProps>(function AgentChat({ on
                   type="text"
                   value={editingTitle}
                   onChange={(e) => setEditingTitle(e.target.value)}
-                  onKeyDown={handleTitleKeyPress}
+                  onKeyDown={(e) => {
+                    handleTitleKeyPress(e);
+                    handleKeyDown(e);
+                  }}
                   onBlur={saveTitle}
                   className="font-semibold bg-transparent border-none outline-none focus:ring-2 focus:ring-ring rounded px-1 py-0.5 flex-1 mr-2"
                   maxLength={100}
@@ -524,6 +539,7 @@ export const AgentChat = forwardRef<any, AgentChatProps>(function AgentChat({ on
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
                   onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyDown}
                   placeholder={UI_TEXT.agents.messagePlaceholder}
                   className="flex-1 p-3 border border-border bg-background text-foreground resize-none focus:outline-none focus:ring-1 focus:ring-ring text-sm"
                   style={{ borderRadius: '18px', minHeight: '66px', maxHeight: '141px' }}

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: APP_CONFIG.name,
   description: APP_CONFIG.description,
   icons: {
-    icon: '/favicon.png',
+    icon: process.env.NODE_ENV === 'production' ? './favicon.png' : '/favicon.png',
   },
 };
 

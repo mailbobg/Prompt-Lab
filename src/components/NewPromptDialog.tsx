@@ -82,6 +82,31 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
     setFormData(prev => ({ ...prev, tags }));
   };
 
+  // Handle paste events explicitly
+  const handlePaste = (e: React.ClipboardEvent, field: keyof typeof formData) => {
+    const pastedText = e.clipboardData.getData('text');
+    if (pastedText && typeof formData[field] === 'string') {
+      setFormData(prev => ({ 
+        ...prev, 
+        [field]: (prev[field] as string) + pastedText 
+      }));
+    }
+  };
+
+  // Handle keyboard shortcuts
+  const handleKeyDown = (e: React.KeyboardEvent, field: string) => {
+    // Enable Ctrl+V (Cmd+V on Mac) paste
+    if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+      // Let the default paste behavior work
+      return;
+    }
+    
+    // Enable Ctrl+A (Cmd+A on Mac) select all
+    if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+      return;
+    }
+  };
+
   const handleGenerateWithAI = async () => {
     setIsGenerating(true);
     // Here you can integrate AI generation functionality
@@ -97,19 +122,11 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
     }, 1500);
   };
 
-  // Handle click outside to close dialog
-  const handleBackgroundClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
   if (!isOpen) return null;
 
   return (
     <div 
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-      onClick={handleBackgroundClick}
     >
       <div className="bg-background border border-border rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Title bar */}
@@ -153,6 +170,7 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
               placeholder="Enter a title"
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              onKeyDown={(e) => handleKeyDown(e, 'title')}
               className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm"
               required
             />
@@ -168,6 +186,7 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
               placeholder="Enter your prompt template"
               value={formData.content}
               onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+              onKeyDown={(e) => handleKeyDown(e, 'content')}
               className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none text-sm"
               rows={6}
               required
@@ -181,6 +200,7 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
               placeholder="Enter sample usage example"
               value={formData.sample}
               onChange={(e) => setFormData(prev => ({ ...prev, sample: e.target.value }))}
+              onKeyDown={(e) => handleKeyDown(e, 'sample')}
               className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none text-sm"
               rows={4}
             />
@@ -197,6 +217,15 @@ export function NewPromptDialog({ isOpen, onClose, onSave, prefilledData }: NewP
               placeholder="Enter tags separated by commas"
               value={tagInput}
               onChange={(e) => handleTagsChange(e.target.value)}
+              onKeyDown={(e) => {
+                // Enable default paste behavior for tags
+                if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+                  return;
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+                  return;
+                }
+              }}
               className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm"
             />
             {formData.tags.length > 0 && (

@@ -144,6 +144,18 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
     setEditForm({ title: '', content: '', sample: '', tags: [], category: 'other' });
   };
 
+  // Handle keyboard shortcuts for better paste support
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Enable Ctrl+V (Cmd+V on Mac) paste
+    if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+      return; // Let the default paste behavior work
+    }
+    // Enable Ctrl+A (Cmd+A on Mac) select all
+    if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+      return;
+    }
+  };
+
   const handleDelete = (id: string) => {
     const newPrompts = prompts.filter(p => p.id !== id);
     savePrompts(newPrompts);
@@ -404,6 +416,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                       type="text"
                       value={editForm.title}
                       onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                      onKeyDown={handleKeyDown}
                       className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
@@ -415,6 +428,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                     <textarea
                       value={editForm.content}
                       onChange={(e) => setEditForm(prev => ({ ...prev, content: e.target.value }))}
+                      onKeyDown={handleKeyDown}
                       className="w-full flex-1 p-4 border border-border rounded-md bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring min-h-[200px] text-sm"
                     />
                   </div>
@@ -425,6 +439,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                       placeholder="输入示例内容"
                       value={editForm.sample}
                       onChange={(e) => setEditForm(prev => ({ ...prev, sample: e.target.value }))}
+                      onKeyDown={handleKeyDown}
                       className="w-full p-3 border border-border rounded-md bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring min-h-[100px] text-sm"
                     />
                   </div>
@@ -441,6 +456,7 @@ export const PromptManager = forwardRef<any, PromptManagerProps>(function Prompt
                         const tags = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
                         setEditForm(prev => ({ ...prev, tags }));
                       }}
+                      onKeyDown={handleKeyDown}
                       className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                     {editForm.tags.length > 0 && (
