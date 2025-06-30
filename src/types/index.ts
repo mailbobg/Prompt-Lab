@@ -31,6 +31,7 @@ export interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
+  reasoningContent?: string; // For DeepSeek Reasoner model
   timestamp: string;
 }
 
